@@ -1,11 +1,9 @@
-package com.example.ticketing.controller.event;
+package com.example.ticketing.model.event;
 
-import com.example.ticketing.model.event.Event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter

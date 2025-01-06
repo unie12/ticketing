@@ -2,8 +2,7 @@ package com.example.ticketing.model.coupon;
 
 import com.example.ticketing.model.event.Event;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,6 +11,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponEvent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,4 +38,15 @@ public class CouponEvent {
 
     @OneToMany(mappedBy = "couponEvent", cascade = CascadeType.ALL)
     private List<CouponTemplate> couponTemplates = new ArrayList<>();
+
+    @Builder
+    private CouponEvent(String eventName, LocalDateTime startTime, LocalDateTime endTime, LocalDateTime validityEndTime, Event event) {
+        this.eventName = eventName;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.validityEndTime = validityEndTime;
+        this.event = event;
+        this.isActive = true;
+        this.couponTemplates = new ArrayList<>();
+    }
 }

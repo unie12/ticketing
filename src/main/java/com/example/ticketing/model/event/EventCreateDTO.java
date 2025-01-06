@@ -1,15 +1,16 @@
 package com.example.ticketing.model.event;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 public class EventCreateDTO {
-    private String name;
-    private int totalSeats;
+    private final String name;
+    private final int totalSeats;
+
+    @Builder
+    private EventCreateDTO(String name, int totalSeats) {
+        this.name = name;
+        this.totalSeats = totalSeats;
+    }
 }

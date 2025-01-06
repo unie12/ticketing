@@ -20,10 +20,10 @@ public class EventServiceImpl implements EventService {
     public Event createEvent(EventCreateDTO dto) {
         validateEventCreation(dto);
 
-        Event event = new Event();
-        event.setName(dto.getName());
-        event.setTotalSeats(dto.getTotalSeats());
-        event.setRemainingSeats(dto.getTotalSeats());
+        Event event = Event.builder()
+                .name(dto.getName())
+                .totalSeats(dto.getTotalSeats())
+                .build();
 
         return eventRepository.save(event);
     }

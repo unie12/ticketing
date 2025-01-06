@@ -2,6 +2,7 @@ package com.example.ticketing.controller.event;
 
 import com.example.ticketing.model.event.Event;
 import com.example.ticketing.model.event.EventCreateDTO;
+import com.example.ticketing.model.event.EventDTO;
 import com.example.ticketing.service.event.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
