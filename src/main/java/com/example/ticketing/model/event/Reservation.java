@@ -1,4 +1,4 @@
-package com.example.ticketing.model.reservation;
+package com.example.ticketing.model.event;
 
 import com.example.ticketing.model.user.User;
 import jakarta.persistence.*;
