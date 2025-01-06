@@ -92,8 +92,12 @@ class EventServiceImplTest {
         @DisplayName("유효한 데이터로 이벤트를 생성한다")
         void createEventSuccess() {
             // given
-            EventCreateDTO dto = new EventCreateDTO("콘서트", 100);
+            EventCreateDTO dto = EventCreateDTO.builder()
+                    .name("콘서트")
+                    .totalSeats(100)
+                    .build();
             Event event = createEvent(1L, "콘서트", 100);
+
             when(eventRepository.save(any(Event.class))).thenReturn(event);
 
             // when
@@ -111,7 +115,10 @@ class EventServiceImplTest {
         @DisplayName("이벤트 이름이 없으면 예외가 발생한다")
         void createEventWithEmptyName() {
             // given
-            EventCreateDTO dto = new EventCreateDTO("", 100);
+            EventCreateDTO dto = EventCreateDTO.builder()
+                    .name("")
+                    .totalSeats(100)
+                    .build();
 
             // when & then
             assertThrows(IllegalArgumentException.class,
@@ -122,7 +129,10 @@ class EventServiceImplTest {
         @DisplayName("좌석 수가 0이하면 예외가 발생한다")
         void createEventWithInvalidSeats() {
             // given
-            EventCreateDTO dto = new EventCreateDTO("콘서트", 0);
+            EventCreateDTO dto = EventCreateDTO.builder()
+                    .name("콘서트")
+                    .totalSeats(0)
+                    .build();
 
             // when & then
             assertThrows(IllegalArgumentException.class,
@@ -131,11 +141,9 @@ class EventServiceImplTest {
     }
 
     private Event createEvent(Long id, String name, int totalSeats) {
-        Event event = new Event();
-        event.setId(id);
-        event.setName(name);
-        event.setTotalSeats(totalSeats);
-        event.setRemainingSeats(totalSeats);
-        return event;
+        return Event.builder()
+                .name(name)
+                .totalSeats(totalSeats)
+                .build();
     }
 }
