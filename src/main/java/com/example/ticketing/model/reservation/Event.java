@@ -1,5 +1,6 @@
-package com.example.ticketing.model;
+package com.example.ticketing.model.reservation;
 
+import com.example.ticketing.model.coupon.CouponEvent;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,4 +33,7 @@ public class Event {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reservation> reservations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<CouponEvent> CouponEvents = new ArrayList<>();
 }

@@ -1,9 +1,9 @@
-package com.example.ticketing.model;
+package com.example.ticketing.model.coupon;
 
+import com.example.ticketing.model.reservation.Event;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,6 +31,10 @@ public class CouponEvent {
 
     @Column(nullable = false)
     private boolean isActive = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
 
     @OneToMany(mappedBy = "couponEvent", cascade = CascadeType.ALL)
     private List<CouponTemplate> couponTemplates = new ArrayList<>();

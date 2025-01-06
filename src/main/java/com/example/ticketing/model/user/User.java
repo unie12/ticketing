@@ -1,5 +1,6 @@
-package com.example.ticketing.model;
+package com.example.ticketing.model.user;
 
+import com.example.ticketing.model.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
