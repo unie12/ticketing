@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -30,6 +32,11 @@ public class EventServiceImpl implements EventService {
     public Event getEvent(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + eventId));
+    }
+
+    @Override
+    public List<Event> getEvents() {
+        return eventRepository.findAll();
     }
 
     private void validateEventCreation(EventCreateDTO dto) {
