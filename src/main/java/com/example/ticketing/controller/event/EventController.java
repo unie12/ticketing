@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 public class EventController {
     private final EventService eventService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EventDTO> getEvent(@PathVariable Long id) {
-        Event event = eventService.getEvent(id);
+    @GetMapping("/{eventId}")
+    public ResponseEntity<EventDTO> getEvent(@PathVariable Long eventId) {
+        Event event = eventService.getEvent(eventId);
         return ResponseEntity.ok(EventDTO.from(event));
     }
 
