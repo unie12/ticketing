@@ -1,5 +1,7 @@
-package com.example.ticketing.model;
+package com.example.ticketing.model.user;
 
+import com.example.ticketing.model.coupon.CouponStatus;
+import com.example.ticketing.model.coupon.CouponTemplate;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
