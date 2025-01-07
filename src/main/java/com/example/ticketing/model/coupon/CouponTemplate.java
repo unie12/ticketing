@@ -2,8 +2,7 @@ package com.example.ticketing.model.coupon;
 
 import com.example.ticketing.model.user.UserCoupon;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +10,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,4 +41,17 @@ public class CouponTemplate {
 
     @OneToMany(mappedBy = "couponTemplate", cascade = CascadeType.ALL)
     private List<UserCoupon> userCoupons = new ArrayList<>();
+
+    @Builder
+    private CouponTemplate(String name, int weight, int totalQuantity,
+                           int discountAmount, DiscountType discountType, CouponEvent couponEvent) {
+        this.name = name;
+        this.weight = weight;
+        this.totalQuantity = totalQuantity;
+        this.remaining = totalQuantity;
+        this.discountAmount = discountAmount;
+        this.discountType = discountType;
+        this.couponEvent = couponEvent;
+        this.userCoupons = new ArrayList<>();
+    }
 }
