@@ -29,8 +29,8 @@ public class CouponEvent {
     @Column(nullable = false)
     private LocalDateTime validityEndTime;
 
-    @Column(nullable = false)
-    private boolean isActive = true;
+//    @Column(nullable = false)
+//    private boolean isActive;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
@@ -39,6 +39,12 @@ public class CouponEvent {
     @OneToMany(mappedBy = "couponEvent", cascade = CascadeType.ALL)
     private List<CouponTemplate> couponTemplates = new ArrayList<>();
 
+    @Transient
+    public boolean isActive() {
+        LocalDateTime now = LocalDateTime.now();
+        return now.isAfter(startTime) && now.isBefore(endTime);
+    }
+
     @Builder
     private CouponEvent(String eventName, LocalDateTime startTime, LocalDateTime endTime, LocalDateTime validityEndTime, Event event) {
         this.eventName = eventName;
@@ -46,7 +52,6 @@ public class CouponEvent {
         this.endTime = endTime;
         this.validityEndTime = validityEndTime;
         this.event = event;
-        this.isActive = true;
         this.couponTemplates = new ArrayList<>();
     }
 }

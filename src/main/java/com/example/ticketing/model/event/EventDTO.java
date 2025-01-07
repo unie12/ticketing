@@ -1,19 +1,24 @@
 package com.example.ticketing.model.event;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 public class EventDTO {
-    private String name;
-    private int totalSeats;
-    private int remainingSeats;
-    private LocalDateTime createdAt;
+    private final String name;
+    private final int totalSeats;
+    private final int remainingSeats;
+    private final LocalDateTime createdAt;
+
+    @Builder
+    public EventDTO(String name, int totalSeats, int remainingSeats, LocalDateTime createdAt) {
+        this.name = name;
+        this.totalSeats = totalSeats;
+        this.remainingSeats = remainingSeats;
+        this.createdAt = createdAt;
+    }
 
     public static EventDTO from(Event event) {
         return new EventDTO(
