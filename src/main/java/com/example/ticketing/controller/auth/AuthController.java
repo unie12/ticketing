@@ -1,8 +1,6 @@
 package com.example.ticketing.controller.auth;
 
-import com.example.ticketing.model.user.LoginRequest;
-import com.example.ticketing.model.user.LoginResponse;
-import com.example.ticketing.model.user.SignUpRequest;
+import com.example.ticketing.model.user.*;
 import com.example.ticketing.service.user.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +26,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse login = authService.login(request);
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        TokenResponse login = authService.login(request);
         return ResponseEntity.ok(login);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+        authService.logout(token.substring(7));
+        return ResponseEntity.ok("로그아웃 되었습니다");
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request.getRefreshToken()));
     }
 }

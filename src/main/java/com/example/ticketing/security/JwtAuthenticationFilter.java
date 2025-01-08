@@ -4,6 +4,7 @@ import com.example.ticketing.exception.AuthException;
 import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.model.user.User;
 import com.example.ticketing.repository.user.UserRepository;
+import com.example.ticketing.service.user.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final TokenService tokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -31,6 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
+
+            if (StringUtils.hasText(jwt) && tokenService.isTokenBlacklisted(jwt)) {
+                throw new AuthException(ErrorCode.TOKEN_BLACKLISTED);
+            }
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 Long userId = tokenProvider.getUserIdFromToken(jwt);

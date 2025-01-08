@@ -37,9 +37,9 @@ public class User {
     @Column(name = "verification_token_expiry")
     private LocalDateTime verificationTokenExpiry;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private AuthProvider provider = AuthProvider.LOCAL;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider provider = AuthProvider.LOCAL;
 
 //    private String providerId;
 

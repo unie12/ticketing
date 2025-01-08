@@ -12,7 +12,12 @@ public class ErrorResponse {
     private int status;
     private String code;
 
-    @Builder
+    public ErrorResponse(ErrorCode errorCode, String message) {
+        this.message = message;
+        this.status = errorCode.getStatus().value();
+        this.code = errorCode.name();
+    }
+
     public ErrorResponse(ErrorCode errorCode) {
         this.message = errorCode.getMessage();
         this.status = errorCode.getStatus().value();
