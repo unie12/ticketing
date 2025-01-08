@@ -48,5 +48,5 @@ HELP.md
 # 기타 IDE 및 편집기 설정 파일 (필요 시 추가)
 *.swp  # Vim swap files
 
-*.yml
 *.properties
+*.yml
