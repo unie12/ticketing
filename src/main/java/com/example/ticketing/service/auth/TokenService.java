@@ -1,6 +1,6 @@
-package com.example.ticketing.service.user;
+package com.example.ticketing.service.auth;
 
-import com.example.ticketing.model.user.TokenData;
+import com.example.ticketing.model.auth.TokenData;
 import com.example.ticketing.security.JwtTokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

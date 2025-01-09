@@ -2,7 +2,7 @@ package com.example.ticketing.config;
 
 import com.example.ticketing.repository.user.UserRepository;
 import com.example.ticketing.security.*;
-import com.example.ticketing.service.user.TokenService;
+import com.example.ticketing.service.auth.TokenService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.example.ticketing.service.user;
+package com.example.ticketing.service.auth;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

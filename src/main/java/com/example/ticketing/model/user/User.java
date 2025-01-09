@@ -1,5 +1,6 @@
 package com.example.ticketing.model.user;
 
+import com.example.ticketing.model.auth.AuthProvider;
 import com.example.ticketing.model.event.Reservation;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,7 +1,6 @@
 package com.example.ticketing.security;
 
 import com.example.ticketing.model.user.User;
-import com.example.ticketing.service.user.TokenService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
