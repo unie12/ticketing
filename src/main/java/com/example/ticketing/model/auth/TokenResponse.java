@@ -1,4 +1,4 @@
-package com.example.ticketing.model.user;
+package com.example.ticketing.model.auth;
 
 import lombok.AccessLevel;
 import lombok.Builder;

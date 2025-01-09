@@ -2,7 +2,7 @@ package com.example.ticketing.config;
 
 import com.example.ticketing.repository.user.UserRepository;
 import com.example.ticketing.security.*;
-import com.example.ticketing.service.user.TokenService;
+import com.example.ticketing.service.auth.TokenService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +24,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 @Configuration
@@ -43,7 +42,7 @@ public class SecurityConfig {
                 .headers(headers -> headers // 보안 헤더 설정
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny) // 클릭재킹 방지
                         .xssProtection(Customizer.withDefaults()) // XSS 보호
-                        .contentSecurityPolicy(csp -> // CSP 정ㅊㄱ
+                        .contentSecurityPolicy(csp -> // CSP 설정
                                 csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"))
                         .httpStrictTransportSecurity(hsts -> // HTTPS 강제
                                 hsts.includeSubDomains(true)
@@ -68,7 +67,7 @@ public class SecurityConfig {
                 .addFilterBefore(new XssFilter(), UsernamePasswordAuthenticationFilter.class) // XSS 공격 방지
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // JWT 토큰 검증
 
-        // H2 콘솔 사용을 위한 설정 (개발 환경only)
+        // H2 콘솔 사용을 위한 설정 (개발 환경 only)
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();

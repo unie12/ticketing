@@ -1,5 +1,6 @@
 package com.example.ticketing.model.user;
 
+import com.example.ticketing.model.auth.AuthProvider;
 import com.example.ticketing.model.event.Reservation;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,6 +48,7 @@ public class User {
     @Column(nullable = false)
     private Role role = Role.ROLE_USER;
 
+    // 삭제 고려
     private int loginAttempts = 0;
     private LocalDateTime lockTime;
 

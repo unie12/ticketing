@@ -1,7 +1,11 @@
-package com.example.ticketing.service.user;
+package com.example.ticketing.service.auth;
 
 import com.example.ticketing.exception.AuthException;
 import com.example.ticketing.exception.ErrorCode;
+import com.example.ticketing.model.auth.LoginRequest;
+import com.example.ticketing.model.auth.SignUpRequest;
+import com.example.ticketing.model.auth.TokenData;
+import com.example.ticketing.model.auth.TokenResponse;
 import com.example.ticketing.model.user.*;
 import com.example.ticketing.repository.user.UserRepository;
 import com.example.ticketing.security.JwtTokenProvider;
@@ -14,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.example.ticketing.service.user.LoginAttemptService.MAX_ATTEMPTS;
+import static com.example.ticketing.service.auth.LoginAttemptService.MAX_ATTEMPTS;
 
 @Service
 @Transactional

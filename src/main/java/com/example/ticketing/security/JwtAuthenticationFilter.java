@@ -4,7 +4,7 @@ import com.example.ticketing.exception.AuthException;
 import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.model.user.User;
 import com.example.ticketing.repository.user.UserRepository;
-import com.example.ticketing.service.user.TokenService;
+import com.example.ticketing.service.auth.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new AuthException(ErrorCode.TOKEN_BLACKLISTED);
             }
 
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            if (tokenProvider.validateToken(jwt)) {
                 Long userId = tokenProvider.getUserIdFromToken(jwt);
                 User user = userRepository.findById(userId)
                         .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));

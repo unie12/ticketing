@@ -1,7 +1,10 @@
 package com.example.ticketing.controller.auth;
 
-import com.example.ticketing.model.user.*;
-import com.example.ticketing.service.user.AuthService;
+import com.example.ticketing.model.auth.LoginRequest;
+import com.example.ticketing.model.auth.RefreshTokenRequest;
+import com.example.ticketing.model.auth.SignUpRequest;
+import com.example.ticketing.model.auth.TokenResponse;
+import com.example.ticketing.service.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

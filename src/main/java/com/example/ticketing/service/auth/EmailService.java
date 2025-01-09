@@ -1,4 +1,4 @@
-package com.example.ticketing.service.user;
+package com.example.ticketing.service.auth;
 
 import com.example.ticketing.model.user.User;
 import jakarta.mail.MessagingException;
