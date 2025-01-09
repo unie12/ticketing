@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static com.example.ticketing.service.user.LoginAttemptService.MAX_ATTEMPTS;
 
@@ -93,9 +94,13 @@ public class AuthService {
             }
 
             loginAttemptService.loginSucceeded(email);
+
+            String tokenFamily = UUID.randomUUID().toString();
             String accessToken = jwtTokenProvider.generateToken(user);
-            String refreshToken = jwtTokenProvider.generateRefreshToken(user);
-            tokenService.saveRefreshToken(user.getId(), refreshToken);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(user, tokenFamily);
+
+//            TokenData tokenData = new TokenData(refreshToken, tokenFamily);
+            tokenService.saveRefreshToken(user.getId(), refreshToken, tokenFamily);
 
             return TokenResponse.builder()
                     .accessToken(accessToken)
@@ -108,7 +113,12 @@ public class AuthService {
 
 
     public void logout(String token) {
+        // 액세스 토큰 블랙리스트 추가
         tokenService.addToBlacklist(token);
+
+        // 리프레시 토큰 무효화
+        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        tokenService.invalidateRefreshToken(userId);
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -116,14 +126,30 @@ public class AuthService {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
+        String tokenType = jwtTokenProvider.getTokenTypeFromToken(refreshToken);
+        if (!"REFRESH".equals(tokenType)) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN_TYPE);
+        }
+
         Long userID = jwtTokenProvider.getUserIdFromToken(refreshToken);
         User user = userRepository.findById(userID)
                 .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
 
-        String newAccessToken = jwtTokenProvider.generateToken(user);
-        String newRefreshToken = jwtTokenProvider.generateRefreshToken(user);
+        String tokenFamily = jwtTokenProvider.getTokenFamilyFromToken(refreshToken);
+        TokenData storedTokenData = tokenService.getRefreshToken(userID);
 
-        tokenService.saveRefreshToken(userID, newRefreshToken);
+        if (storedTokenData == null || !storedTokenData.getTokenFamily().equals(tokenFamily)) {
+            tokenService.invalidateTokenFamily(tokenFamily);
+            throw new AuthException(ErrorCode.TOKEN_REUSE_DETECTED);
+        }
+
+        String newTokenFamily = UUID.randomUUID().toString();
+        String newAccessToken = jwtTokenProvider.generateToken(user);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(user, newTokenFamily);
+
+        TokenData newTokenData = new TokenData(newRefreshToken, newTokenFamily);
+        tokenService.saveRefreshToken(userID, newRefreshToken, newTokenFamily);
+        tokenService.addToBlacklist(refreshToken);
 
         return TokenResponse.builder()
                 .accessToken(newAccessToken)

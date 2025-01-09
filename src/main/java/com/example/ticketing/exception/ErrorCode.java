@@ -40,7 +40,10 @@ public enum ErrorCode {
 
     // REDIS
     REMAINING_ATTEMPTS(HttpStatus.BAD_REQUEST, "로그인 실패. 남은 시도 횟수: %d회"),
-    ACCOUNT_LOCKED_WITH_TIME(HttpStatus.UNAUTHORIZED, "계정이 잠겼습니다. %d분 후에 다시 시도해주세요.");
+    ACCOUNT_LOCKED_WITH_TIME(HttpStatus.UNAUTHORIZED, "계정이 잠겼습니다. %d분 후에 다시 시도해주세요."),
+
+    TOKEN_REUSE_DETECTED(HttpStatus.UNAUTHORIZED, "토큰이 재사용되었습니다." ),
+    INVALID_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, "잘못된 토큰 타입입니다.");
 
 
     private final HttpStatus status;

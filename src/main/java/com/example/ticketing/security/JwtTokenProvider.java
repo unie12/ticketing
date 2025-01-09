@@ -1,6 +1,7 @@
 package com.example.ticketing.security;
 
 import com.example.ticketing.model.user.User;
+import com.example.ticketing.service.user.TokenService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -15,6 +16,8 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+    private final TokenService tokenService;
+
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -30,12 +33,14 @@ public class JwtTokenProvider {
 
     private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7일
 
-    public String generateRefreshToken(User user) {
+    public String generateRefreshToken(User user, String tokenFamily) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION);
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
+                .claim("tokenFamily", tokenFamily)
+                .claim("tokenType", "REFRESH")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -48,6 +53,9 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
+                .claim("roles", user.getRole().name())
+                .claim("username", user.getUsername())
+                .claim("tokenType", "ACCESS")
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -71,10 +79,20 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
+            if (tokenService.isTokenBlacklisted(token)) {
+                return false;
+            }
+            Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(token);
+                    .parseSignedClaims(token)
+                    .getPayload();
+            String tokenType = claims.get("tokenType", String.class);
+
+            if (tokenType == null) {
+                return false;
+            }
+
             return true;
         } catch (SecurityException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             return false;
@@ -95,5 +113,23 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public String getTokenFamilyFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.get("tokenFamily", String.class);
+    }
+
+    public String getTokenTypeFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.get("tokenType", String.class);
     }
 }
