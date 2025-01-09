@@ -3,14 +3,14 @@ package com.example.ticketing.model.user;
 import com.example.ticketing.model.coupon.CouponStatus;
 import com.example.ticketing.model.coupon.CouponTemplate;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserCoupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class UserCoupon {
     @Column(nullable = false)
     private LocalDateTime issuedAt;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime usedAt;
 
     @Enumerated(EnumType.STRING)
@@ -37,5 +37,12 @@ public class UserCoupon {
     public void prePersist() {
         this.issuedAt = LocalDateTime.now();
         this.status = CouponStatus.AVAILABLE;
+    }
+
+    @Builder
+    private UserCoupon(User user, CouponTemplate couponTemplate, LocalDateTime usedAt) {
+        this.user = user;
+        this.couponTemplate = couponTemplate;
+        this.usedAt = usedAt;
     }
 }
