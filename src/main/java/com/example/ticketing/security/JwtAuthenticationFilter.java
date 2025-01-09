@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new AuthException(ErrorCode.TOKEN_BLACKLISTED);
             }
 
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            if (tokenProvider.validateToken(jwt)) {
                 Long userId = tokenProvider.getUserIdFromToken(jwt);
                 User user = userRepository.findById(userId)
                         .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));

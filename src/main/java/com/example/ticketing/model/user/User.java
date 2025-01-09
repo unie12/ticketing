@@ -47,6 +47,7 @@ public class User {
     @Column(nullable = false)
     private Role role = Role.ROLE_USER;
 
+    // 삭제 고려
     private int loginAttempts = 0;
     private LocalDateTime lockTime;
 

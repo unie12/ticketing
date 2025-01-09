@@ -16,7 +16,7 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-    private final TokenService tokenService;
+//    private final TokenService tokenService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -79,9 +79,9 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            if (tokenService.isTokenBlacklisted(token)) {
-                return false;
-            }
+//            if (tokenService.isTokenBlacklisted(token)) {
+//                return false;
+//            }
             Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
