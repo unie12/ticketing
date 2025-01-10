@@ -49,8 +49,8 @@ public class User {
     private Role role = Role.ROLE_USER;
 
     // 삭제 고려
-    private int loginAttempts = 0;
-    private LocalDateTime lockTime;
+//    private int loginAttempts = 0;
+//    private LocalDateTime lockTime;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -80,19 +80,19 @@ public class User {
         this.verificationTokenExpiry = LocalDateTime.now().plusHours(24);
     }
 
-    public boolean isAccountLocked() {
-        return lockTime != null && LocalDateTime.now().isBefore(lockTime);
-    }
-
-    public void incrementLoginAttempts() {
-        this.loginAttempts++;
-        if (this.loginAttempts >= 5) {
-            this.lockTime = LocalDateTime.now().plusMinutes(30);
-        }
-    }
-
-    public void resetLoginAttempts() {
-        this.loginAttempts = 0;
-        this.lockTime = null;
-    }
+//    public boolean isAccountLocked() {
+//        return lockTime != null && LocalDateTime.now().isBefore(lockTime);
+//    }
+//
+//    public void incrementLoginAttempts() {
+//        this.loginAttempts++;
+//        if (this.loginAttempts >= 5) {
+//            this.lockTime = LocalDateTime.now().plusMinutes(30);
+//        }
+//    }
+//
+//    public void resetLoginAttempts() {
+//        this.loginAttempts = 0;
+//        this.lockTime = null;
+//    }
 }
