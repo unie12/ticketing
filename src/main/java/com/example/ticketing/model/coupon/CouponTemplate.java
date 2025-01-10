@@ -9,12 +9,14 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+//    @Version
+//    private Long version; // optimistic lock verison
 
     @Column(nullable = false, unique = true)
     private String name;
@@ -53,5 +55,12 @@ public class CouponTemplate {
         this.discountType = discountType;
         this.couponEvent = couponEvent;
         this.userCoupons = new ArrayList<>();
+    }
+
+    public void decreaseRemaining() {
+        if (this.remaining <= 0) {
+            throw new IllegalStateException("해당 쿠폰 템플릿이 모두 소진되었습니다.");
+        }
+        this.remaining--;
     }
 }
