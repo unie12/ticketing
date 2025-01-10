@@ -1,5 +1,8 @@
 package com.example.ticketing.service.user;
 
+import com.example.ticketing.exception.AuthException;
+import com.example.ticketing.exception.CouponException;
+import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.model.coupon.CouponStatus;
 import com.example.ticketing.model.coupon.CouponTemplate;
 import com.example.ticketing.model.user.User;
@@ -30,28 +33,28 @@ public class UserCouponServiceImpl implements UserCouponService{
         // 1. Redis 검증 먼저 수행
         boolean isAdded = couponRedisRepository.addUserToCoupon(couponTemplateId, userId);
         if (!isAdded) {
-            throw new IllegalStateException("이미 해당 쿠폰 템플릿을 소유하고 있습니다.");
+            throw new CouponException(ErrorCode.COUPON_ALREADY_OWNED);
         }
 
         boolean decremented = couponRedisRepository.decrementCouponCount(couponTemplateId);
         if (!decremented) {
             // Redis Set에서 사용자 제거
             couponRedisRepository.removeUserFromCoupon(couponTemplateId, userId);
-            throw new IllegalStateException("해당 쿠폰 템플릿이 모두 소진되었습니다.");
+            throw new CouponException(ErrorCode.COUPON_OUT_OF_STOCK);
         }
 
         // 2. DB 작업 수행
         try {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다: " + userId));
+                    .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
 
             CouponTemplate couponTemplate = couponTemplateRepository.findById(couponTemplateId)
-                    .orElseThrow(() -> new EntityNotFoundException("해당 쿠폰 템플릿을 찾을 수 없습니다: " + couponTemplateId));
+                    .orElseThrow(() -> new CouponException(ErrorCode.COUPON_TEMPLATE_NOT_FOUND));
 
             // 벌크 연산으로 수량 감소
             int updatedCount = couponTemplateRepository.decreaseQuantity(couponTemplateId);
             if (updatedCount == 0) {
-                throw new IllegalStateException("쿠폰 수량 업데이트 실패");
+                throw new CouponException(ErrorCode.COUPON_UPDATE_FAILED);
             }
 
             UserCoupon userCoupon = UserCoupon.builder()
@@ -77,10 +80,10 @@ public class UserCouponServiceImpl implements UserCouponService{
     @Override
     public void useCoupon(Long userCouponId) {
         UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 쿠폰이 존재하지 않습니다: " + userCouponId ));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
 
         if (!userCoupon.getStatus().equals(CouponStatus.AVAILABLE)) {
-            throw new IllegalStateException("해당 쿠폰은 사용 불가능합니다.");
+            throw new CouponException(ErrorCode.COUPON_NOT_AVAILABLE);
         }
 
         userCoupon.setStatus(CouponStatus.USED);

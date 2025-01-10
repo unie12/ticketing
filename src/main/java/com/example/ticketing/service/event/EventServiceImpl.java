@@ -1,5 +1,7 @@
 package com.example.ticketing.service.event;
 
+import com.example.ticketing.exception.ErrorCode;
+import com.example.ticketing.exception.EventException;
 import com.example.ticketing.model.event.Event;
 import com.example.ticketing.model.event.EventCreateDTO;
 import com.example.ticketing.repository.event.EventRepository;
@@ -31,7 +33,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public Event getEvent(Long eventId) {
         return eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + eventId));
+                .orElseThrow(() -> new EventException(ErrorCode.EVENT_NOT_FOUND));
     }
 
     @Override
@@ -41,10 +43,10 @@ public class EventServiceImpl implements EventService {
 
     private void validateEventCreation(EventCreateDTO dto) {
         if (dto.getName() == null || dto.getName().trim().isEmpty())  {
-            throw new IllegalArgumentException("Event name cannot be empty");
+            throw new EventException(ErrorCode.EVENT_NAME_EMPTY);
         }
         if (dto.getTotalSeats() <= 0) {
-            throw new IllegalArgumentException("Total seats must be greater than 0");
+            throw new EventException(ErrorCode.EVENT_SEAT_AMOUNT);
         }
     }
 }
