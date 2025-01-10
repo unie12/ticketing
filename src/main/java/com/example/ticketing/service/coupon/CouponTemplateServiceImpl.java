@@ -1,5 +1,7 @@
 package com.example.ticketing.service.coupon;
 
+import com.example.ticketing.exception.CouponException;
+import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.model.coupon.CouponEvent;
 import com.example.ticketing.model.coupon.CouponTemplate;
 import com.example.ticketing.model.coupon.CouponTemplateDTO;
@@ -22,7 +24,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService{
     @Override
     public CouponTemplate createCouponTemplate(Long couponEventId, CouponTemplateDTO dto) {
         CouponEvent couponEvent = couponEventRepository.findById(couponEventId)
-                .orElseThrow(() -> new EntityNotFoundException("There is no CouponEvent of couponEventId: " + couponEventId));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_EVENT_NOT_FOUND));
 
         validateCouponTemplateCreation(dto);
 
@@ -33,26 +35,29 @@ public class CouponTemplateServiceImpl implements CouponTemplateService{
     @Override
     public CouponTemplate getCouponTemplate(Long templateId) {
         return couponTemplateRepository.findById(templateId)
-                .orElseThrow(() -> new EntityNotFoundException("There is no CouponTemplate of id: " + templateId));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_TEMPLATE_NOT_FOUND));
     }
 
     @Override
     public List<CouponTemplate> getCouponTemplatesByCouponEvent(Long couponEventId) {
+        if (!couponEventRepository.existsById(couponEventId)) {
+            throw new CouponException(ErrorCode.COUPON_EVENT_NOT_FOUND);
+        }
         return couponTemplateRepository.findByCouponEventId(couponEventId);
     }
 
     private void validateCouponTemplateCreation(CouponTemplateDTO dto) {
         if (dto.getName() == null || dto.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Coupon template name cannot be empty");
+            throw new CouponException(ErrorCode.COUPON_TEMPLATE_NAME_EMPTY);
         }
         if (dto.getWeight() <= 0) {
-            throw new IllegalArgumentException("Weight must be greater than 0");
+            throw new CouponException(ErrorCode.INVALID_COUPON_WEIGHT);
         }
         if (dto.getTotalQuantity() <= 0) {
-            throw new IllegalArgumentException("Total quantity must be greater than 0");
+            throw new CouponException(ErrorCode.INVALID_COUPON_QUANTITY);
         }
         if (dto.getDiscountAmount() <= 0) {
-            throw new IllegalArgumentException("Discount amount must be greater than 0");
+            throw new CouponException(ErrorCode.INVALID_DISCOUNT_AMOUNT);
         }
     }
 }

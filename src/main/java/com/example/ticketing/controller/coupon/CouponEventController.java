@@ -18,12 +18,18 @@ import java.util.stream.Collectors;
 public class CouponEventController {
     private final CouponEventService couponEventService;
 
+    /**
+     * 해당 couponEvent 조회
+     */
     @GetMapping("/{couponEventId}")
     public ResponseEntity<CouponEventResponse> getCouponEvent(@PathVariable Long couponEventId) {
         CouponEvent couponEvent = couponEventService.getCouponEvent(couponEventId);
         return ResponseEntity.ok(CouponEventResponse.from(couponEvent));
     }
 
+    /**
+     * 해당 event의 모든 couponEvent 조회
+     */
     @GetMapping("/event/{eventId}")
     public ResponseEntity<List<CouponEventResponse>> getCouponEventByEvent(@PathVariable Long eventId) {
         List<CouponEvent> couponEvents = couponEventService.getCouponEventByEvent(eventId);
@@ -32,6 +38,10 @@ public class CouponEventController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
     }
+
+    /**
+     * 모든 couponEvent 조회
+     */
 
     @PostMapping("/{eventId}")
     public ResponseEntity<CouponEventResponse> createCouponEvent(

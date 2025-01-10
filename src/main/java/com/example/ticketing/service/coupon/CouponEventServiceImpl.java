@@ -1,5 +1,8 @@
 package com.example.ticketing.service.coupon;
 
+import com.example.ticketing.exception.CouponException;
+import com.example.ticketing.exception.ErrorCode;
+import com.example.ticketing.exception.EventException;
 import com.example.ticketing.model.coupon.CouponEvent;
 import com.example.ticketing.model.coupon.CouponEventCreateRequest;
 import com.example.ticketing.model.event.Event;
@@ -19,12 +22,10 @@ public class CouponEventServiceImpl implements CouponEventService{
     private final CouponEventRepository couponEventRepository;
     private final EventRepository eventRepository;
 
-//    private final RedisTemplate<String, String> redisTemplate;
-
     @Override
     public CouponEvent createCouponEvent(Long eventId, CouponEventCreateRequest request) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event is not found of eventID: " + eventId));
+                .orElseThrow(() -> new EventException(ErrorCode.EVENT_NOT_FOUND));
 
         validateCouponEventCreation(request);
 
@@ -34,20 +35,23 @@ public class CouponEventServiceImpl implements CouponEventService{
     @Override
     public CouponEvent getCouponEvent(Long couponEventId) {
         return couponEventRepository.findById(couponEventId)
-                .orElseThrow(() -> new EntityNotFoundException("CouponEvent is not found of couponEventId: " + couponEventId));
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_EVENT_NOT_FOUND));
     }
 
     @Override
     public List<CouponEvent> getCouponEventByEvent(Long eventId) {
+        if (!eventRepository.existsById(eventId)) {
+            throw new EventException(ErrorCode.EVENT_NOT_FOUND);
+        }
         return couponEventRepository.findByEventId(eventId);
     }
 
     private void validateCouponEventCreation(CouponEventCreateRequest request) {
         if (request.getStartTime().isAfter(request.getEndTime())) {
-            throw new IllegalArgumentException("Start time must be before end time");
+            throw new CouponException(ErrorCode.INVALID_EVENT_TIME_RANGE);
         }
         if (request.getEndTime().isAfter(request.getValidityEndTime())) {
-            throw new IllegalArgumentException("End time must be before validity end time");
+            throw new CouponException(ErrorCode.INVALID_VALIDITY_TIME_RANGE);
         }
     }
 
