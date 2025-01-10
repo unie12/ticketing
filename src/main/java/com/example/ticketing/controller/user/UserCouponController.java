@@ -18,7 +18,7 @@ public class UserCouponController {
     private final UserCouponService userCouponService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping("/issue/{couponTemplateId")
+    @PostMapping("/issue/{couponTemplateId}")
     public ResponseEntity<UserCouponDTO> issueCoupon(
             @RequestHeader("Authorization") String token,
             @PathVariable Long couponTemplateId

@@ -4,11 +4,11 @@ import com.example.ticketing.model.coupon.CouponStatus;
 import com.example.ticketing.model.coupon.CouponTemplate;
 import com.example.ticketing.model.user.User;
 import com.example.ticketing.model.user.UserCoupon;
+import com.example.ticketing.repository.coupon.CouponRedisRepository;
 import com.example.ticketing.repository.coupon.CouponTemplateRepository;
 import com.example.ticketing.repository.user.UserCouponRepository;
 import com.example.ticketing.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,38 +23,48 @@ public class UserCouponServiceImpl implements UserCouponService{
     private final UserCouponRepository userCouponRepository;
     private final UserRepository userRepository;
     private final CouponTemplateRepository couponTemplateRepository;
+    private final CouponRedisRepository couponRedisRepository;
 
     @Override
     public UserCoupon issueCoupon(Long userId, Long couponTemplateId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다: " + userId));
+        // 1. Redis 검증 먼저 수행
+        boolean isAdded = couponRedisRepository.addUserToCoupon(couponTemplateId, userId);
+        if (!isAdded) {
+            throw new IllegalStateException("이미 해당 쿠폰 템플릿을 소유하고 있습니다.");
+        }
 
-        CouponTemplate couponTemplate = couponTemplateRepository.findById(couponTemplateId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 쿠폰 템플릿을 찾을 수 없습니다: " + couponTemplateId));
-
-        if (couponTemplate.getRemaining() <= 0) {
+        boolean decremented = couponRedisRepository.decrementCouponCount(couponTemplateId);
+        if (!decremented) {
+            // Redis Set에서 사용자 제거
+            couponRedisRepository.removeUserFromCoupon(couponTemplateId, userId);
             throw new IllegalStateException("해당 쿠폰 템플릿이 모두 소진되었습니다.");
         }
 
-        boolean alreadyIssued = userCouponRepository.existsByUserIdAndCouponTemplateId(userId, couponTemplateId);
-        if (alreadyIssued) {
-            throw new IllegalArgumentException("이미 해당 쿠폰 템플릿을 소유하고 있습니다.");
-        }
-
+        // 2. DB 작업 수행
         try {
-            couponTemplate.decreaseRemaining();
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다: " + userId));
 
-            // 여기서 영속 상태이므로, flush 시점에 @Version 검증 수행
+            CouponTemplate couponTemplate = couponTemplateRepository.findById(couponTemplateId)
+                    .orElseThrow(() -> new EntityNotFoundException("해당 쿠폰 템플릿을 찾을 수 없습니다: " + couponTemplateId));
+
+            // 벌크 연산으로 수량 감소
+            int updatedCount = couponTemplateRepository.decreaseQuantity(couponTemplateId);
+            if (updatedCount == 0) {
+                throw new IllegalStateException("쿠폰 수량 업데이트 실패");
+            }
 
             UserCoupon userCoupon = UserCoupon.builder()
                     .user(user)
                     .couponTemplate(couponTemplate)
                     .build();
 
-            userCouponRepository.save(userCoupon);
-            return userCoupon;
-        } catch (OptimisticLockException e) {
-            throw new IllegalStateException("동시에 발급 요청이 몰려 쿠폰이 소진되었거나 충돌이 발생했습니다.");
+            return userCouponRepository.save(userCoupon);
+        } catch (Exception e) {
+            // 실패시 Redis 롤백
+            couponRedisRepository.incrementCouponCount(couponTemplateId);
+            couponRedisRepository.removeUserFromCoupon(couponTemplateId, userId);
+            throw e;
         }
     }
 
