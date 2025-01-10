@@ -29,7 +29,7 @@ public class UserCouponController {
         return ResponseEntity.ok(UserCouponDTO.from(userCoupon));
     }
 
-    @PostMapping("/{userCouponId}/use")
+    @PostMapping("/{userCouponId}/use" )
     public ResponseEntity<String> useCoupon(
             @RequestHeader("Authorization") String token,
             @PathVariable Long userCouponId

@@ -64,7 +64,7 @@ public class AuthService {
                 .orElseThrow(() -> new AuthException(ErrorCode.INVALID_TOKEN));
 
         if (user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new AuthException(ErrorCode.TOKEN_EXPIRED);
+            throw new AuthException(ErrorCode.TOKEN_EXPIRED, "인증 링크가 만료되었습니다. 새로운 인증 이메일을 요청해주세요.");
         }
 
         user.verifyEmail();
@@ -159,5 +159,18 @@ public class AuthService {
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
+    }
+
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.isEmailVerified()) {
+            throw new AuthException(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
+
+        user.generateVerificationToken();
+        userRepository.save(user);
+        emailService.sendVerificationEmail(user, user.getVerificationToken());
     }
 }
