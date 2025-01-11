@@ -7,6 +7,7 @@ import com.example.ticketing.service.coupon.CouponEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,6 +52,7 @@ public class CouponEventController {
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("hasAnyRole('EVENT_MANAGER', 'ADMIN')")
     @PostMapping
     public ResponseEntity<CouponEventResponse> createCouponEvent(
             @PathVariable Long eventId,
