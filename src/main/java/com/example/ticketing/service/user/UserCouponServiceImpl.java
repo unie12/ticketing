@@ -91,4 +91,14 @@ public class UserCouponServiceImpl implements UserCouponService{
         userCouponRepository.save(userCoupon);
 
     }
+
+    @Override
+    public UserCoupon getUserCoupon(Long userId, Long userCouponId) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
+        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+
+        return userCoupon;
+    }
 }

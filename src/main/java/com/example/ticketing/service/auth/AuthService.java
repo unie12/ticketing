@@ -151,7 +151,7 @@ public class AuthService {
         String newAccessToken = jwtTokenProvider.generateToken(user);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(user, newTokenFamily);
 
-        TokenData newTokenData = new TokenData(newRefreshToken, newTokenFamily);
+//        TokenData newTokenData = new TokenData(newRefreshToken, newTokenFamily);
         tokenService.saveRefreshToken(userID, newRefreshToken, newTokenFamily);
         tokenService.addToBlacklist(refreshToken);
 

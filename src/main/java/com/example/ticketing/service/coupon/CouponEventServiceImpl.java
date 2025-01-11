@@ -46,6 +46,11 @@ public class CouponEventServiceImpl implements CouponEventService{
         return couponEventRepository.findByEventId(eventId);
     }
 
+    @Override
+    public List<CouponEvent> getCouponEvents() {
+        return couponEventRepository.findAll();
+    }
+
     private void validateCouponEventCreation(CouponEventCreateRequest request) {
         if (request.getStartTime().isAfter(request.getEndTime())) {
             throw new CouponException(ErrorCode.INVALID_EVENT_TIME_RANGE);
