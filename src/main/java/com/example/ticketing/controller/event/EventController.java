@@ -4,7 +4,9 @@ import com.example.ticketing.model.event.Event;
 import com.example.ticketing.model.event.EventCreateDTO;
 import com.example.ticketing.model.event.EventDTO;
 import com.example.ticketing.service.event.EventService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,7 +38,7 @@ public class EventController {
 
     @PreAuthorize("hasAnyRole('EVENT_MANAGER', 'ADMIN')")
     @PostMapping
-    public ResponseEntity<EventDTO> createEvent(@RequestBody EventCreateDTO dto) {
+    public ResponseEntity<EventDTO> createEvent(@Valid @RequestBody EventCreateDTO dto) {
         Event event = eventService.createEvent(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(EventDTO.from(event));
