@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UserCouponRepository extends JpaRepository<UserCoupon, Long>, UserCouponCustomRepository {
+public interface UserCouponRepository extends JpaRepository<UserCoupon, Long>{
     boolean existsByUserIdAndCouponTemplateId(Long userId, Long couponTemplateId);
 
     List<UserCoupon> findByUserId(Long userId);

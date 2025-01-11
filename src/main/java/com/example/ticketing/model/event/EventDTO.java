@@ -10,14 +10,16 @@ public class EventDTO {
     private final String name;
     private final int totalSeats;
     private final int remainingSeats;
-    private final LocalDateTime createdAt;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
 
     @Builder
-    public EventDTO(String name, int totalSeats, int remainingSeats, LocalDateTime createdAt) {
+    public EventDTO(String name, int totalSeats, int remainingSeats, LocalDateTime startTime, LocalDateTime endTime) {
         this.name = name;
         this.totalSeats = totalSeats;
         this.remainingSeats = remainingSeats;
-        this.createdAt = createdAt;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     public static EventDTO from(Event event) {
@@ -25,7 +27,8 @@ public class EventDTO {
                 event.getName(),
                 event.getTotalSeats(),
                 event.getRemainingSeats(),
-                event.getCreatedAt()
+                event.getStartTime(),
+                event.getEndTime()
         );
     }
 }

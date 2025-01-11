@@ -1,11 +1,11 @@
 package com.example.ticketing.repository.user;
 
 import com.example.ticketing.model.coupon.CouponStatus;
-import com.example.ticketing.model.user.QUserCoupon;
 import com.example.ticketing.model.user.UserCoupon;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,12 +14,13 @@ import static com.example.ticketing.model.coupon.QCouponEvent.couponEvent;
 import static com.example.ticketing.model.coupon.QCouponTemplate.couponTemplate;
 import static com.example.ticketing.model.user.QUserCoupon.userCoupon;
 
+@Repository
 @RequiredArgsConstructor
-public class UserCouponCustomRepositoryImpl implements UserCouponCustomRepository{
+public class UserCouponQueryRepository{
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
-    @Override
+//    @Override
     public List<UserCoupon> findExpiredCoupons(Long lastId, LocalDateTime now, int limit) {
         return queryFactory
                 .selectFrom(userCoupon)
@@ -35,7 +36,7 @@ public class UserCouponCustomRepositoryImpl implements UserCouponCustomRepositor
                 .fetch();
     }
 
-    @Override
+//    @Override
     public void bulkUpdateStatus(List<Long> ids, CouponStatus status) {
         queryFactory
                 .update(userCoupon)
