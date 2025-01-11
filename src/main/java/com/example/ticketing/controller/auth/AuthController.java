@@ -25,7 +25,7 @@ public class AuthController {
         return ResponseEntity.ok("회원가입이 완료되었습니다. 이메일을 확인해주세요");
     }
 
-    @GetMapping("/verify")
+    @GetMapping("/email-verification")
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         try {
             authService.verifyEmail(token);
@@ -37,6 +37,13 @@ public class AuthController {
             }
             throw e;
         }
+    }
+
+    @PostMapping("/email-verification/resend")
+    public ResponseEntity<String> resendVerificationEmail(@RequestBody String request) {
+        authService.resendVerificationEmail(request);
+        return ResponseEntity.ok("새로운 인증 이메일이 발송되었습니다.");
+
     }
 
     @PostMapping("/login")
@@ -51,15 +58,9 @@ public class AuthController {
         return ResponseEntity.ok("로그아웃 되었습니다");
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/tokens/refresh")
     public ResponseEntity<TokenResponse> refresh(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refresh(request.getRefreshToken()));
     }
 
-    @PostMapping("/resend-verification")
-    public ResponseEntity<String> resendVerificationEmail(@RequestBody String request) {
-        authService.resendVerificationEmail(request);
-        return ResponseEntity.ok("새로운 인증 이메일이 발송되었습니다.");
-
-    }
 }

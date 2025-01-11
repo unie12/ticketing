@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/couponTemplate")
+@RequestMapping("/api/coupons/{couponEventId}/templates")
 public class CouponTemplateController {
     private final CouponTemplateService couponTemplateService;
 
@@ -22,7 +22,7 @@ public class CouponTemplateController {
         return ResponseEntity.ok(CouponTemplateDTO.from(couponTemplate));
     }
 
-    @GetMapping("/couponEvent/{couponEventId}")
+    @GetMapping
     public ResponseEntity<List<CouponTemplateDTO>> getCouponTemplateByCouponEvent(@PathVariable Long couponEventId) {
         List<CouponTemplate> couponEvents = couponTemplateService.getCouponTemplatesByCouponEvent(couponEventId);
         List<CouponTemplateDTO> responses = couponEvents.stream()
@@ -31,8 +31,8 @@ public class CouponTemplateController {
         return ResponseEntity.ok(responses);
     }
 
-    @PostMapping("/{couponEventId}")
-    public ResponseEntity<CouponTemplateDTO> createCouponEvent(
+    @PostMapping
+    public ResponseEntity<CouponTemplateDTO> createCouponTemplate(
             @PathVariable Long couponEventId,
             @RequestBody CouponTemplateDTO dto) {
         CouponTemplate couponTemplate = couponTemplateService.createCouponTemplate(couponEventId, dto);
