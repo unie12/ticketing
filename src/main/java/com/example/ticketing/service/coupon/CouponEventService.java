@@ -9,4 +9,6 @@ public interface CouponEventService {
     CouponEvent createCouponEvent(Long eventId, CouponEventCreateRequest request);
     CouponEvent getCouponEvent(Long couponEventId);
     List<CouponEvent> getCouponEventByEvent(Long eventId);
+
+    List<CouponEvent> getCouponEvents();
 }

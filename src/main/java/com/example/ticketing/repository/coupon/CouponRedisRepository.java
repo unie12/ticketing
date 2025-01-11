@@ -26,16 +26,19 @@ public class CouponRedisRepository {
 //        return redisTemplate.opsForValue().decrement(key);
 //    }
     public boolean decrementCouponCount(Long couponTemplateId) {
-        String script = "local count = redis.call('get', KEYS[1]) " +
-                "if count and tonumber(count) > 0 then " +
-                "  redis.call('decr', KEYS[1]) " +
-                "  return 1 " +
-                "else " +
-                "  return 0 " +
-                "end";
+        String script = """
+            local count = redis.call('get', KEYS[1])
+            if count and tonumber(count) > 0 then
+                redis.call('decr', KEYS[1])
+                return true
+            end
+            return false
+            """;
         String key = "COUPON:TEMPLATE:COUNT:" + couponTemplateId;
-        return stringRedisTemplate.execute(new DefaultRedisScript<>(script, Boolean.class), Collections.singletonList(key));
-
+        return Boolean.TRUE.equals(redisTemplate.execute(
+                new DefaultRedisScript<>(script, Boolean.class),
+                Collections.singletonList(key)
+        ));
     }
 
     /**

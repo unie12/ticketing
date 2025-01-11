@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -59,6 +60,13 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/events/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/events/*/coupons/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/coupons/*/templates/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/userCoupons/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/events/**").hasAnyRole("EVENT_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/events/*/coupons/**").hasAnyRole("EVENT_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/coupons/*/templates/**").hasAnyRole("EVENT_MANAGER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 // 보안 필터 체인

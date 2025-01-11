@@ -65,12 +65,16 @@ public enum ErrorCode {
     EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "이벤트를 찾을 수 없습니다."),
     EVENT_NAME_EMPTY(HttpStatus.BAD_REQUEST, "이벤트 이름은 필수입니다."),
     EVENT_SEAT_AMOUNT(HttpStatus.BAD_REQUEST, "이벤트 좌석은 0보다 커야 합니다."),
+    EVENT_NOT_PERIOD(HttpStatus.BAD_REQUEST, "이벤트 기간이 아닙니다."),
 
 
     // 쿠폰 이벤트 관련 에러 (COUPON_EVENT_XXX)
     COUPON_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰 이벤트를 찾을 수 없습니다."),
     INVALID_EVENT_TIME_RANGE(HttpStatus.BAD_REQUEST, "이벤트 시작 시간은 종료 시간보다 이전이어야 합니다."),
-    INVALID_VALIDITY_TIME_RANGE(HttpStatus.BAD_REQUEST, "이벤트 종료 시간은 유효 기간 종료 시간보다 이전이어야 합니다.");
+    INVALID_VALIDITY_TIME_RANGE(HttpStatus.BAD_REQUEST, "이벤트 종료 시간은 유효 기간 종료 시간보다 이전이어야 합니다."),
+    COUPON_EVENT_EXPIRED(HttpStatus.BAD_REQUEST, "쿠폰 이벤트 기간이 종료되었습니다."),
+    INVALID_START_TIME(HttpStatus.BAD_REQUEST, "쿠폰 이벤트 시간이 유효하지 않습니다."),
+    ;
 
     private final HttpStatus status;
     private final String message;

@@ -5,6 +5,7 @@ import com.example.ticketing.service.coupon.CouponTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/couponTemplate")
+@RequestMapping("/api/coupons/{couponEventId}/templates")
 public class CouponTemplateController {
     private final CouponTemplateService couponTemplateService;
 
@@ -22,7 +23,7 @@ public class CouponTemplateController {
         return ResponseEntity.ok(CouponTemplateDTO.from(couponTemplate));
     }
 
-    @GetMapping("/couponEvent/{couponEventId}")
+    @GetMapping
     public ResponseEntity<List<CouponTemplateDTO>> getCouponTemplateByCouponEvent(@PathVariable Long couponEventId) {
         List<CouponTemplate> couponEvents = couponTemplateService.getCouponTemplatesByCouponEvent(couponEventId);
         List<CouponTemplateDTO> responses = couponEvents.stream()
@@ -31,8 +32,9 @@ public class CouponTemplateController {
         return ResponseEntity.ok(responses);
     }
 
-    @PostMapping("/{couponEventId}")
-    public ResponseEntity<CouponTemplateDTO> createCouponEvent(
+    @PreAuthorize("hasAnyRole('EVENT_MANAGER', 'ADMIN')")
+    @PostMapping
+    public ResponseEntity<CouponTemplateDTO> createCouponTemplate(
             @PathVariable Long couponEventId,
             @RequestBody CouponTemplateDTO dto) {
         CouponTemplate couponTemplate = couponTemplateService.createCouponTemplate(couponEventId, dto);

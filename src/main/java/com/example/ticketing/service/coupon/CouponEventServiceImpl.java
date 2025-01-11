@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -46,7 +47,18 @@ public class CouponEventServiceImpl implements CouponEventService{
         return couponEventRepository.findByEventId(eventId);
     }
 
+    @Override
+    public List<CouponEvent> getCouponEvents() {
+        return couponEventRepository.findAll();
+    }
+
     private void validateCouponEventCreation(CouponEventCreateRequest request) {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (request.getStartTime().isBefore(now)) {
+            throw new CouponException(ErrorCode.INVALID_START_TIME);
+        }
+
         if (request.getStartTime().isAfter(request.getEndTime())) {
             throw new CouponException(ErrorCode.INVALID_EVENT_TIME_RANGE);
         }

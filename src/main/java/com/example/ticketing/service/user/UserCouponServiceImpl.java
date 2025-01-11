@@ -3,6 +3,7 @@ package com.example.ticketing.service.user;
 import com.example.ticketing.exception.AuthException;
 import com.example.ticketing.exception.CouponException;
 import com.example.ticketing.exception.ErrorCode;
+import com.example.ticketing.model.coupon.CouponEvent;
 import com.example.ticketing.model.coupon.CouponStatus;
 import com.example.ticketing.model.coupon.CouponTemplate;
 import com.example.ticketing.model.user.User;
@@ -51,6 +52,9 @@ public class UserCouponServiceImpl implements UserCouponService{
             CouponTemplate couponTemplate = couponTemplateRepository.findById(couponTemplateId)
                     .orElseThrow(() -> new CouponException(ErrorCode.COUPON_TEMPLATE_NOT_FOUND));
 
+            CouponEvent event = couponTemplate.getCouponEvent();
+            validateEventPeriod(event);
+
             // 벌크 연산으로 수량 감소
             int updatedCount = couponTemplateRepository.decreaseQuantity(couponTemplateId);
             if (updatedCount == 0) {
@@ -82,6 +86,8 @@ public class UserCouponServiceImpl implements UserCouponService{
         UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
                 .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
 
+        validateCouponValidity(userCoupon);
+
         if (!userCoupon.getStatus().equals(CouponStatus.AVAILABLE)) {
             throw new CouponException(ErrorCode.COUPON_NOT_AVAILABLE);
         }
@@ -90,5 +96,29 @@ public class UserCouponServiceImpl implements UserCouponService{
         userCoupon.setUsedAt(LocalDateTime.now());
         userCouponRepository.save(userCoupon);
 
+    }
+
+    @Override
+    public UserCoupon getUserCoupon(Long userId, Long userCouponId) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
+        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
+
+        return userCoupon;
+    }
+
+    private void validateEventPeriod(CouponEvent event) {
+        LocalDateTime now = LocalDateTime.now();
+        if (!event.isActive()) {
+            throw new CouponException(ErrorCode.EVENT_NOT_PERIOD);
+        }
+    }
+    private void validateCouponValidity(UserCoupon coupon) {
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isAfter(coupon.getCouponTemplate().getCouponEvent().getValidityEndTime())) {
+            coupon.setStatus(CouponStatus.EXPIRED);
+            throw new CouponException(ErrorCode.COUPON_EVENT_EXPIRED);
+        }
     }
 }
