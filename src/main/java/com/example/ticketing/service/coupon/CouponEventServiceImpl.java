@@ -8,7 +8,6 @@ import com.example.ticketing.model.coupon.CouponEventCreateRequest;
 import com.example.ticketing.model.event.Event;
 import com.example.ticketing.repository.coupon.CouponEventRepository;
 import com.example.ticketing.repository.event.EventRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

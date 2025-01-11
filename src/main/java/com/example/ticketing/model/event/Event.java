@@ -31,10 +31,10 @@ public class Event {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(nullable = false)
-    private LocalDateTime startTime; // 이벤트 시작
+    private LocalDateTime startTime = LocalDateTime.now();
 
     @Column(nullable = false)
-    private LocalDateTime endTime; // 이벤트 종료
+    private LocalDateTime endTime = LocalDateTime.now().plusDays(1); // 하루 뒤로 기본값 설정
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reservation> reservations = new ArrayList<>();

@@ -5,7 +5,6 @@ import com.example.ticketing.exception.EventException;
 import com.example.ticketing.model.event.Event;
 import com.example.ticketing.model.event.EventCreateDTO;
 import com.example.ticketing.repository.event.EventRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

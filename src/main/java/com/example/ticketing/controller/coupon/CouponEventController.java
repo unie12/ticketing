@@ -43,7 +43,7 @@ public class CouponEventController {
     /**
      * 모든 couponEvent 조회
      */
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<CouponEventResponse>> getCouponEvents() {
         List<CouponEvent> couponEvents = couponEventService.getCouponEvents();
         List<CouponEventResponse> responses = couponEvents.stream()

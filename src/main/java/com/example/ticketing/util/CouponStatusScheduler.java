@@ -2,7 +2,7 @@ package com.example.ticketing.util;
 
 import com.example.ticketing.model.coupon.CouponStatus;
 import com.example.ticketing.model.user.UserCoupon;
-import com.example.ticketing.repository.user.UserCouponCustomRepository;
+import com.example.ticketing.repository.user.UserCouponQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class CouponStatusScheduler {
-    private final UserCouponCustomRepository userCouponCustomRepository;
+    private final UserCouponQueryRepository userCouponQueryRepository;
 
     @Value("${coupon.batch.size:1000}")
     private int batchSize;
@@ -29,7 +29,7 @@ public class CouponStatusScheduler {
         long totalProcessed = 0;
 
         while (true) {
-            List<UserCoupon> batch = userCouponCustomRepository.findExpiredCoupons(lastProcessedId, now, batchSize);
+            List<UserCoupon> batch = userCouponQueryRepository.findExpiredCoupons(lastProcessedId, now, batchSize);
 
             if (batch.isEmpty()) {
                 break;
@@ -39,7 +39,7 @@ public class CouponStatusScheduler {
                     .map(UserCoupon::getId)
                     .collect(Collectors.toList());
 
-            userCouponCustomRepository.bulkUpdateStatus(expiredIds, CouponStatus.EXPIRED);
+            userCouponQueryRepository.bulkUpdateStatus(expiredIds, CouponStatus.EXPIRED);
 
             lastProcessedId = batch.get(batch.size() - 1).getId();
             totalProcessed += batch.size();
