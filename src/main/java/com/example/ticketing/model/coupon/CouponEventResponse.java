@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 public class CouponEventResponse {
+    private final Long id;
     private final String eventName;
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
@@ -14,9 +15,10 @@ public class CouponEventResponse {
     private final boolean isActive;
 
     @Builder
-    public CouponEventResponse(String eventName, LocalDateTime startTime,
+    public CouponEventResponse(Long id, String eventName, LocalDateTime startTime,
                                LocalDateTime endTime, LocalDateTime validityEndTime,
                                boolean isActive) {
+        this.id = id;
         this.eventName = eventName;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -26,6 +28,7 @@ public class CouponEventResponse {
 
     public static CouponEventResponse from(CouponEvent couponEvent) {
         return CouponEventResponse.builder()
+                .id(couponEvent.getId())
                 .eventName(couponEvent.getEventName())
                 .startTime(couponEvent.getStartTime())
                 .endTime(couponEvent.getEndTime())

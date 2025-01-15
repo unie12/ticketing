@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 public class EventDTO {
+    private final Long id;
     private final String name;
     private final int totalSeats;
     private final int remainingSeats;
@@ -14,7 +15,8 @@ public class EventDTO {
     private final LocalDateTime endTime;
 
     @Builder
-    public EventDTO(String name, int totalSeats, int remainingSeats, LocalDateTime startTime, LocalDateTime endTime) {
+    public EventDTO(Long id, String name, int totalSeats, int remainingSeats, LocalDateTime startTime, LocalDateTime endTime) {
+        this.id = id;
         this.name = name;
         this.totalSeats = totalSeats;
         this.remainingSeats = remainingSeats;
@@ -24,7 +26,7 @@ public class EventDTO {
 
     public static EventDTO from(Event event) {
         return new EventDTO(
-                event.getName(),
+                event.getId(), event.getName(),
                 event.getTotalSeats(),
                 event.getRemainingSeats(),
                 event.getStartTime(),
