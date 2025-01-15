@@ -4,8 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class CouponTemplateDTO {
-    private final Long id;
+public class CouponTemplateCreateRequest {
     private final String name;
     private final int weight;
     private final int totalQuantity;
@@ -13,8 +12,8 @@ public class CouponTemplateDTO {
     private final DiscountType discountType;
 
     @Builder
-    public CouponTemplateDTO(Long id, String name, int weight, int totalQuantity, int discountAmount, DiscountType discountType) {
-        this.id = id;
+    public CouponTemplateCreateRequest(String name, int weight, int totalQuantity,
+                                       int discountAmount, DiscountType discountType) {
         this.name = name;
         this.weight = weight;
         this.totalQuantity = totalQuantity;
@@ -30,17 +29,6 @@ public class CouponTemplateDTO {
                 .discountAmount(this.discountAmount)
                 .discountType(this.discountType)
                 .couponEvent(couponEvent)
-                .build();
-    }
-
-    public static CouponTemplateDTO from(CouponTemplate entity) {
-        return CouponTemplateDTO.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .weight(entity.getWeight())
-                .totalQuantity(entity.getTotalQuantity())
-                .discountAmount(entity.getDiscountAmount())
-                .discountType(entity.getDiscountType())
                 .build();
     }
 }

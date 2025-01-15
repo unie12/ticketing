@@ -4,6 +4,7 @@ import com.example.ticketing.exception.CouponException;
 import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.model.coupon.CouponEvent;
 import com.example.ticketing.model.coupon.CouponTemplate;
+import com.example.ticketing.model.coupon.CouponTemplateCreateRequest;
 import com.example.ticketing.model.coupon.CouponTemplateDTO;
 import com.example.ticketing.repository.coupon.CouponEventRepository;
 import com.example.ticketing.repository.coupon.CouponTemplateRepository;
@@ -22,7 +23,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService{
     private final CouponEventRepository couponEventRepository;
 
     @Override
-    public CouponTemplate createCouponTemplate(Long couponEventId, CouponTemplateDTO dto) {
+    public CouponTemplate createCouponTemplate(Long couponEventId, CouponTemplateCreateRequest dto) {
         CouponEvent couponEvent = couponEventRepository.findById(couponEventId)
                 .orElseThrow(() -> new CouponException(ErrorCode.COUPON_EVENT_NOT_FOUND));
 
@@ -46,7 +47,7 @@ public class CouponTemplateServiceImpl implements CouponTemplateService{
         return couponTemplateRepository.findByCouponEventId(couponEventId);
     }
 
-    private void validateCouponTemplateCreation(CouponTemplateDTO dto) {
+    private void validateCouponTemplateCreation(CouponTemplateCreateRequest dto) {
         if (dto.getName() == null || dto.getName().trim().isEmpty()) {
             throw new CouponException(ErrorCode.COUPON_TEMPLATE_NAME_EMPTY);
         }

@@ -36,7 +36,7 @@ public class CouponTemplateController {
     @PostMapping
     public ResponseEntity<CouponTemplateDTO> createCouponTemplate(
             @PathVariable Long couponEventId,
-            @RequestBody CouponTemplateDTO dto) {
+            @RequestBody CouponTemplateCreateRequest dto) {
         CouponTemplate couponTemplate = couponTemplateService.createCouponTemplate(couponEventId, dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CouponTemplateDTO.from(couponTemplate));

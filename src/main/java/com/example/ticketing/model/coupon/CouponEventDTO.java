@@ -7,9 +7,8 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-//@NoArgsConstructor
-//@AllArgsConstructor
 public class CouponEventDTO {
+    private final Long id;
     private final String eventName;
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
@@ -17,7 +16,8 @@ public class CouponEventDTO {
     private final boolean isActive;
 
     @Builder
-    public CouponEventDTO(String eventName, LocalDateTime startTime, LocalDateTime endTime, LocalDateTime validityEndTime, boolean isActive) {
+    public CouponEventDTO(Long id, String eventName, LocalDateTime startTime, LocalDateTime endTime, LocalDateTime validityEndTime, boolean isActive) {
+        this.id = id;
         this.eventName = eventName;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -27,7 +27,7 @@ public class CouponEventDTO {
 
     public static CouponEventDTO from(CouponEvent couponEvent) {
         return new CouponEventDTO(
-                couponEvent.getEventName(),
+                couponEvent.getId(), couponEvent.getEventName(),
                 couponEvent.getStartTime(),
                 couponEvent.getEndTime(),
                 couponEvent.getValidityEndTime(),
