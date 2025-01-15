@@ -53,7 +53,7 @@ public class AuthService {
 
         try {
             userRepository.save(user);
-            emailService.sendVerificationEmail(user, user.getVerificationToken());
+            emailService.sendVerificationEmail(user, user.getVerificationToken(), "init");
         } catch (Exception e) {
             throw new AuthException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
@@ -171,6 +171,6 @@ public class AuthService {
 
         user.generateVerificationToken();
         userRepository.save(user);
-        emailService.sendVerificationEmail(user, user.getVerificationToken());
+        emailService.sendVerificationEmail(user, user.getVerificationToken(), "resend");
     }
 }
