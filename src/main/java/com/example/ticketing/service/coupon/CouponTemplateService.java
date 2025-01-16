@@ -7,7 +7,7 @@ import com.example.ticketing.model.coupon.CouponTemplateDTO;
 import java.util.List;
 
 public interface CouponTemplateService {
-    CouponTemplate createCouponTemplate(Long couponEventId, CouponTemplateCreateRequest dto);
-    CouponTemplate getCouponTemplate(Long templateId);
-    List<CouponTemplate> getCouponTemplatesByCouponEvent(Long couponEventId);
+    CouponTemplateDTO createCouponTemplate(Long couponEventId, CouponTemplateCreateRequest dto);
+    CouponTemplateDTO getCouponTemplate(Long templateId, Long userId);
+    List<CouponTemplateDTO> getCouponTemplatesByCouponEvent(Long couponEventId, Long userId);
 }

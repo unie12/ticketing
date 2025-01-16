@@ -1,6 +1,7 @@
 package com.example.ticketing.controller.coupon;
 
 import com.example.ticketing.model.coupon.*;
+import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.coupon.CouponTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,20 +17,26 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/coupons/{couponEventId}/templates")
 public class CouponTemplateController {
     private final CouponTemplateService couponTemplateService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/{templateId}")
-    public ResponseEntity<CouponTemplateDTO> getCouponTemplate(@PathVariable Long templateId) {
-        CouponTemplate couponTemplate = couponTemplateService.getCouponTemplate(templateId);
-        return ResponseEntity.ok(CouponTemplateDTO.from(couponTemplate));
+    public ResponseEntity<CouponTemplateDTO> getCouponTemplate(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @PathVariable Long templateId) {
+
+        Long userId = token != null ? jwtTokenProvider.getUserIdFromToken(token.substring(7)) : null;
+
+        return ResponseEntity.ok(couponTemplateService.getCouponTemplate(templateId, userId));
     }
 
     @GetMapping
-    public ResponseEntity<List<CouponTemplateDTO>> getCouponTemplateByCouponEvent(@PathVariable Long couponEventId) {
-        List<CouponTemplate> couponEvents = couponTemplateService.getCouponTemplatesByCouponEvent(couponEventId);
-        List<CouponTemplateDTO> responses = couponEvents.stream()
-                .map(CouponTemplateDTO::from)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<CouponTemplateDTO>> getCouponTemplatesByCouponEvent(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @PathVariable Long couponEventId) {
+
+        Long userId = token != null ? jwtTokenProvider.getUserIdFromToken(token.substring(7)) : null;
+
+        return ResponseEntity.ok(couponTemplateService.getCouponTemplatesByCouponEvent(couponEventId, userId));
     }
 
     @PreAuthorize("hasAnyRole('EVENT_MANAGER', 'ADMIN')")
@@ -37,8 +44,9 @@ public class CouponTemplateController {
     public ResponseEntity<CouponTemplateDTO> createCouponTemplate(
             @PathVariable Long couponEventId,
             @RequestBody CouponTemplateCreateRequest dto) {
-        CouponTemplate couponTemplate = couponTemplateService.createCouponTemplate(couponEventId, dto);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(CouponTemplateDTO.from(couponTemplate));
+                .body(couponTemplateService.createCouponTemplate(couponEventId, dto));
     }
 }
+
