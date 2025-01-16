@@ -2,6 +2,7 @@ package com.example.ticketing.service.event;
 
 import com.example.ticketing.model.event.Event;
 import com.example.ticketing.model.event.EventCreateDTO;
+import com.example.ticketing.model.event.EventDTO;
 import com.example.ticketing.repository.event.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +45,7 @@ class EventServiceImplTest {
             when(eventRepository.findAll()).thenReturn(events);
 
             // when
-            List<Event> result = eventService.getEvents();
+            List<EventDTO> result = eventService.getEvents();
 
             // then
             assertThat(result).hasSize(2);
@@ -64,7 +65,7 @@ class EventServiceImplTest {
             when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
             // when
-            Event result = eventService.getEvent(1L);
+            EventDTO result = eventService.getEvent(1L);
 
             // then
             assertThat(result.getName()).isEqualTo("콘서트");
@@ -101,7 +102,7 @@ class EventServiceImplTest {
             when(eventRepository.save(any(Event.class))).thenReturn(event);
 
             // when
-            Event result = eventService.createEvent(dto);
+            EventDTO result = eventService.createEvent(dto);
 
             // then
             assertThat(result.getName()).isEqualTo("콘서트");

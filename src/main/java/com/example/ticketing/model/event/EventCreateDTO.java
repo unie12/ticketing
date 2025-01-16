@@ -9,6 +9,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 public class EventCreateDTO {
     @NotBlank(message = "이벤트 이름은 필수입니다")
     private final String name;
@@ -21,12 +22,5 @@ public class EventCreateDTO {
 
     @NotNull(message = "종료 시간은 필수입니다")
     private final LocalDateTime endTime;
-
-    @Builder
-    public EventCreateDTO(String name, int totalSeats, LocalDateTime startTime, LocalDateTime endTime) {
-        this.name = name;
-        this.totalSeats = totalSeats;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
 }
+
