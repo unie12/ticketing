@@ -6,6 +6,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 public class CouponEventResponse {
     private final Long id;
     private final String eventName;
@@ -13,18 +14,6 @@ public class CouponEventResponse {
     private final LocalDateTime endTime;
     private final LocalDateTime validityEndTime;
     private final boolean isActive;
-
-    @Builder
-    public CouponEventResponse(Long id, String eventName, LocalDateTime startTime,
-                               LocalDateTime endTime, LocalDateTime validityEndTime,
-                               boolean isActive) {
-        this.id = id;
-        this.eventName = eventName;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.validityEndTime = validityEndTime;
-        this.isActive = isActive;
-    }
 
     public static CouponEventResponse from(CouponEvent couponEvent) {
         return CouponEventResponse.builder()
