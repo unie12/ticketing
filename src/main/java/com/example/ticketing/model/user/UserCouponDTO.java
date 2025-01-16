@@ -18,12 +18,14 @@ public class UserCouponDTO {
     private final CouponTemplateDTO couponTemplate;
 
     public static UserCouponDTO from(UserCoupon userCoupon) {
+        CouponTemplateDTO couponTemplateDTO = CouponTemplateDTO.from(userCoupon.getCouponTemplate(), true);
+
         return UserCouponDTO.builder()
                 .id(userCoupon.getId())
                 .issuedAt(userCoupon.getIssuedAt())
                 .usedAt(userCoupon.getUsedAt())
                 .status(userCoupon.getStatus())
-                .couponTemplate(CouponTemplateDTO.from(userCoupon.getCouponTemplate()))
+                .couponTemplate(couponTemplateDTO)
                 .build();
     }
 }

@@ -8,6 +8,7 @@ import com.example.ticketing.model.coupon.CouponStatus;
 import com.example.ticketing.model.coupon.CouponTemplate;
 import com.example.ticketing.model.user.User;
 import com.example.ticketing.model.user.UserCoupon;
+import com.example.ticketing.model.user.UserCouponDTO;
 import com.example.ticketing.repository.coupon.CouponRedisRepository;
 import com.example.ticketing.repository.coupon.CouponTemplateRepository;
 import com.example.ticketing.repository.user.UserCouponRepository;
@@ -19,18 +20,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserCouponServiceImpl implements UserCouponService{
+public class UserCouponServiceImpl implements UserCouponService {
     private final UserCouponRepository userCouponRepository;
     private final UserRepository userRepository;
     private final CouponTemplateRepository couponTemplateRepository;
     private final CouponRedisRepository couponRedisRepository;
 
     @Override
-    public UserCoupon issueCoupon(Long userId, Long couponTemplateId) {
+    public UserCouponDTO issueCoupon(Long userId, Long couponTemplateId) {
         // 1. Redis 검증 먼저 수행
         boolean isAdded = couponRedisRepository.addUserToCoupon(couponTemplateId, userId);
         if (!isAdded) {
@@ -66,7 +68,7 @@ public class UserCouponServiceImpl implements UserCouponService{
                     .couponTemplate(couponTemplate)
                     .build();
 
-            return userCouponRepository.save(userCoupon);
+            return UserCouponDTO.from(userCouponRepository.save(userCoupon));
         } catch (Exception e) {
             // 실패시 Redis 롤백
             couponRedisRepository.incrementCouponCount(couponTemplateId);
@@ -77,8 +79,10 @@ public class UserCouponServiceImpl implements UserCouponService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserCoupon> getUserCoupons(Long userId) {
-        return userCouponRepository.findByUserId(userId);
+    public List<UserCouponDTO> getUserCoupons(Long userId) {
+        return userCouponRepository.findByUserId(userId).stream()
+                .map(UserCouponDTO::from)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -95,17 +99,14 @@ public class UserCouponServiceImpl implements UserCouponService{
         userCoupon.setStatus(CouponStatus.USED);
         userCoupon.setUsedAt(LocalDateTime.now());
         userCouponRepository.save(userCoupon);
-
     }
 
     @Override
-    public UserCoupon getUserCoupon(Long userId, Long userCouponId) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
+    public UserCouponDTO getUserCoupon(Long userId, Long userCouponId) {
         UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
                 .orElseThrow(() -> new CouponException(ErrorCode.COUPON_NOT_FOUND));
 
-        return userCoupon;
+        return UserCouponDTO.from(userCoupon);
     }
 
     private void validateEventPeriod(CouponEvent event) {
@@ -114,6 +115,7 @@ public class UserCouponServiceImpl implements UserCouponService{
             throw new CouponException(ErrorCode.EVENT_NOT_PERIOD);
         }
     }
+
     private void validateCouponValidity(UserCoupon coupon) {
         LocalDateTime now = LocalDateTime.now();
         if (now.isAfter(coupon.getCouponTemplate().getCouponEvent().getValidityEndTime())) {

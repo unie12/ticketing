@@ -92,7 +92,7 @@ class UserCouponServiceImplTest {
 
             executorService.submit(() -> {
                 try {
-                    UserCouponDTO dto = UserCouponDTO.from(userCouponService.issueCoupon(userId, COUPON_TEMPLATE_ID));
+                    UserCouponDTO dto = userCouponService.issueCoupon(userId, COUPON_TEMPLATE_ID);
                     results.add(dto.toString());
                 } catch (Exception ex) {
                     results.add(ex.getMessage());
