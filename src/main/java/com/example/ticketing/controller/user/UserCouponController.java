@@ -21,20 +21,20 @@ public class UserCouponController {
     @PostMapping("/{couponTemplateId}/issue")
     public ResponseEntity<UserCouponDTO> issueCoupon(
             @RequestHeader("Authorization") String token,
-            @PathVariable Long couponTemplateId
-    ) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
-        UserCoupon userCoupon = userCouponService.issueCoupon(userId, couponTemplateId);
+            @PathVariable Long couponTemplateId) {
 
-        return ResponseEntity.ok(UserCouponDTO.from(userCoupon));
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+
+        return ResponseEntity.ok(userCouponService.issueCoupon(userId, couponTemplateId));
     }
 
-    @PostMapping("/{userCouponId}/use" )
+    @PostMapping("/{userCouponId}/use")
     public ResponseEntity<String> useCoupon(
             @RequestHeader("Authorization") String token,
-            @PathVariable Long userCouponId
-    ) {
+            @PathVariable Long userCouponId) {
+
         jwtTokenProvider.getUserIdFromToken(token.substring(7));
+
         userCouponService.useCoupon(userCouponId);
 
         return ResponseEntity.ok("쿠폰 사용 완료");
@@ -42,25 +42,19 @@ public class UserCouponController {
 
     @GetMapping
     public ResponseEntity<List<UserCouponDTO>> getMyCoupons(@RequestHeader("Authorization") String token) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
-        List<UserCoupon> coupons = userCouponService.getUserCoupons(userId);
 
-        List<UserCouponDTO> dtoList = coupons.stream()
-                .map(UserCouponDTO::from)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtoList);
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+
+        return ResponseEntity.ok(userCouponService.getUserCoupons(userId));
     }
 
     @GetMapping("/{userCouponId}")
-    public ResponseEntity<UserCouponDTO> getMyCoupon(
+    public ResponseEntity<UserCouponDTO> getMyCoupons(
             @RequestHeader("Authorization") String token,
             @PathVariable Long userCouponId) {
+
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
-        UserCoupon coupon = userCouponService.getUserCoupon(userId, userCouponId);
 
-        UserCouponDTO dto = UserCouponDTO.from(coupon);
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userCouponService.getUserCoupon(userId, userCouponId));
     }
-
 }

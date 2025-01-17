@@ -22,24 +22,18 @@ public class EventController {
 
     @GetMapping("/{eventId}")
     public ResponseEntity<EventDTO> getEvent(@PathVariable Long eventId) {
-        Event event = eventService.getEvent(eventId);
-        return ResponseEntity.ok(EventDTO.from(event));
+        return ResponseEntity.ok(eventService.getEvent(eventId));
     }
 
     @GetMapping
     public ResponseEntity<List<EventDTO>> getEvents() {
-        List<Event> events = eventService.getEvents();
-        List<EventDTO> eventDTOs = events.stream()
-                .map(EventDTO::from)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(eventDTOs);
+        return ResponseEntity.ok(eventService.getEvents());
     }
 
     @PreAuthorize("hasAnyRole('EVENT_MANAGER', 'ADMIN')")
     @PostMapping
     public ResponseEntity<EventDTO> createEvent(@Valid @RequestBody EventCreateDTO dto) {
-        Event event = eventService.createEvent(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(EventDTO.from(event));
+                .body(eventService.createEvent(dto));
     }
 }

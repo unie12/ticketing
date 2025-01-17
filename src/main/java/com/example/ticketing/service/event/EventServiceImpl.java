@@ -4,6 +4,7 @@ import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.exception.EventException;
 import com.example.ticketing.model.event.Event;
 import com.example.ticketing.model.event.EventCreateDTO;
+import com.example.ticketing.model.event.EventDTO;
 import com.example.ticketing.repository.event.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -19,9 +21,10 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public Event createEvent(EventCreateDTO dto) {
+    public EventDTO createEvent(EventCreateDTO dto) {
         validateEventCreation(dto);
 
+        // 이벤트 생성 및 저장
         Event event = Event.builder()
                 .name(dto.getName())
                 .totalSeats(dto.getTotalSeats())
@@ -29,18 +32,21 @@ public class EventServiceImpl implements EventService {
                 .endTime(dto.getEndTime())
                 .build();
 
-        return eventRepository.save(event);
+        return EventDTO.from(eventRepository.save(event));
     }
 
     @Override
-    public Event getEvent(Long eventId) {
-        return eventRepository.findById(eventId)
+    public EventDTO getEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventException(ErrorCode.EVENT_NOT_FOUND));
+        return EventDTO.from(event);
     }
 
     @Override
-    public List<Event> getEvents() {
-        return eventRepository.findAll();
+    public List<EventDTO> getEvents() {
+        return eventRepository.findAll().stream()
+                .map(EventDTO::from)
+                .collect(Collectors.toList());
     }
 
     private void validateEventCreation(EventCreateDTO dto) {

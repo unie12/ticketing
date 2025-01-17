@@ -24,41 +24,33 @@ public class CouponEventController {
      */
     @GetMapping("/{couponEventId}")
     public ResponseEntity<CouponEventResponse> getCouponEvent(@PathVariable Long couponEventId) {
-        CouponEvent couponEvent = couponEventService.getCouponEvent(couponEventId);
-        return ResponseEntity.ok(CouponEventResponse.from(couponEvent));
+        return ResponseEntity.ok(couponEventService.getCouponEvent(couponEventId));
     }
 
     /**
-     * 해당 event의 모든 couponEvent 조회
+     * 해당 event의 모든 couponEvents 조회
      */
     @GetMapping
-    public ResponseEntity<List<CouponEventResponse>> getCouponEventByEvent(@PathVariable Long eventId) {
-        List<CouponEvent> couponEvents = couponEventService.getCouponEventByEvent(eventId);
-        List<CouponEventResponse> responses = couponEvents.stream()
-                .map(CouponEventResponse::from)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<CouponEventResponse>> getCouponEventsByEvent(@PathVariable Long eventId) {
+        return ResponseEntity.ok(couponEventService.getCouponEventByEvent(eventId));
     }
 
     /**
-     * 모든 couponEvent 조회
+     * 모든 couponEvents 조회
      */
     @GetMapping("/all")
-    public ResponseEntity<List<CouponEventResponse>> getCouponEvents() {
-        List<CouponEvent> couponEvents = couponEventService.getCouponEvents();
-        List<CouponEventResponse> responses = couponEvents.stream()
-                .map(CouponEventResponse::from)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<CouponEventResponse>> getAllCouponEvents() {
+        return ResponseEntity.ok(couponEventService.getCouponEvents());
     }
 
+    /**
+     * 쿠폰 이벤트 생성
+     */
     @PreAuthorize("hasAnyRole('EVENT_MANAGER', 'ADMIN')")
     @PostMapping
-    public ResponseEntity<CouponEventResponse> createCouponEvent(
-            @PathVariable Long eventId,
-            @RequestBody CouponEventCreateRequest request) {
-        CouponEvent couponEvent = couponEventService.createCouponEvent(eventId, request);
+    public ResponseEntity<CouponEventResponse> createCoupon(@PathVariable Long eventId,
+                                                            @RequestBody CouponEventCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(CouponEventResponse.from(couponEvent));
+                .body(couponEventService.createCouponEvent(eventId, request));
     }
 }
