@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth // url 접근 권한
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/store/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/error"
