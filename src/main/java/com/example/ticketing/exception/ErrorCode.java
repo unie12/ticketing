@@ -74,6 +74,16 @@ public enum ErrorCode {
     INVALID_VALIDITY_TIME_RANGE(HttpStatus.BAD_REQUEST, "이벤트 종료 시간은 유효 기간 종료 시간보다 이전이어야 합니다."),
     COUPON_EVENT_EXPIRED(HttpStatus.BAD_REQUEST, "쿠폰 이벤트 기간이 종료되었습니다."),
     INVALID_START_TIME(HttpStatus.BAD_REQUEST, "쿠폰 이벤트 시간이 유효하지 않습니다."),
+
+    // 리뷰 관련 에러 (REVIEW_XXX)
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."),
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 해당 가게에 리뷰를 작성했습니다."),
+    INVALID_REVIEW_CONTENT(HttpStatus.BAD_REQUEST, "리뷰 내용은 필수이며, 10자 이상이어야 합니다."),
+    INVALID_REVIEW_RATING(HttpStatus.BAD_REQUEST, "평점은 1에서 5 사이의 값이어야 합니다."),
+    UNAUTHORIZED_REVIEW_MODIFICATION(HttpStatus.FORBIDDEN, "다른 사용자의 리뷰를 수정할 수 없습니다."),
+    UNAUTHORIZED_REVIEW_DELETION(HttpStatus.FORBIDDEN, "다른 사용자의 리뷰를 삭제할 수 없습니다."),
+    REVIEW_MODIFICATION_TIME_EXPIRED(HttpStatus.BAD_REQUEST, "리뷰 수정 가능 시간이 만료되었습니다."),
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가게를 찾을 수 없습니다."),
     ;
 
     private final HttpStatus status;
