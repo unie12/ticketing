@@ -1,45 +1,136 @@
 package com.example.ticketing.service.store;
 
+import com.example.ticketing.model.store.Category;
 import com.example.ticketing.model.store.Store;
+import com.example.ticketing.model.store.StoreCategoryMapping;
 import com.example.ticketing.model.store.StoreDTO;
+import com.example.ticketing.repository.store.CategoryRepository;
+import com.example.ticketing.repository.store.StoreCategoryMappingRepository;
 import com.example.ticketing.repository.store.StoreRepository;
 import com.example.ticketing.service.KakaoMapService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StoreServiceImpl implements StoreService {
     private final KakaoMapService kakaoMapService;
     private final StoreRepository storeRepository;
+    private final CategoryRepository categoryRepository;
+    private final StoreCategoryMappingRepository storeCategoryMappingRepository;
+    private final CacheManager cacheManager;
 
     @Override
+    @Transactional
     public List<StoreDTO> searchNearByRestaurants(String keyword, double latitude, double longitude) {
         Object response = kakaoMapService.searchPlaces(keyword, latitude, longitude);
-        return StoreDTO.from(response);
+        List<StoreDTO> stores = StoreDTO.from(response);
+
+        // 검색 결과를 캐시에 저장
+        stores.forEach(store -> {
+            cacheManager.getCache("stores").put(store.getId(), store);
+        });
+
+        return stores;
     }
 
     @Override
+    @Transactional
     public StoreDTO saveOrUpdateStore(StoreDTO storeDTO) {
         Store store = storeRepository.findById(storeDTO.getId())
                 .map(existingStore -> {
                     existingStore.updateFromDTO(storeDTO);
+                    // 기존 카테고리 매핑 삭제
+                    storeCategoryMappingRepository.deleteByStoreId(existingStore.getId());
+                    // 새로운 카테고리 처리
+                    if (storeDTO.getCategoryName() != null) {
+                        processCategoryString(existingStore, storeDTO.getCategoryName());
+                    }
                     return existingStore;
                 })
-                .orElseGet(() -> storeRepository.save(storeDTO.toEntity()));
+                .orElseGet(() -> {
+                    Store newStore = storeDTO.toEntity();
+                    // 새로운 카테고리 처리
+                    if (storeDTO.getCategoryName() != null) {
+                        processCategoryString(newStore, storeDTO.getCategoryName());
+                    }
+                    return storeRepository.save(newStore);
+                });
+
         return StoreDTO.from(store);
     }
 
     @Override
+    @Transactional
     public StoreDTO getOrFetchingStore(String storeId) {
-        Store store = storeRepository.findById(storeId)
+        return storeRepository.findById(storeId)
+                .map(StoreDTO::from)
                 .orElseGet(() -> {
-                    Object placeDetail = kakaoMapService.getPlaceDetail(storeId);
-                    StoreDTO storeDTO = StoreDTO.fromSingleResponse(placeDetail);
-                    return storeRepository.save(storeDTO.toEntity());
+                    Cache.ValueWrapper cached = cacheManager.getCache("stores")
+                            .get(storeId);
+
+                    if (cached != null) {
+                        StoreDTO cachedStore = (StoreDTO) cached.get();
+                        Store store = cachedStore.toEntity();
+
+                        // 카테고리 처리
+                        if (cachedStore.getCategoryName() != null) {
+                            processCategoryString(store, cachedStore.getCategoryName());
+                        }
+
+                        Store savedStore = storeRepository.save(store);
+                        return StoreDTO.from(savedStore);
+                    }
+
+                    throw new RuntimeException("Store not found: " + storeId);
                 });
-        return StoreDTO.from(store);
+    }
+
+    private void processCategoryString(Store store, String categoryString) {
+        if (categoryString == null || categoryString.trim().isEmpty()) {
+            return;
+        }
+
+        String[] categoryLevels = categoryString.split(" > ");
+        Category parent = null;
+
+        for (int i = 0; i < categoryLevels.length; i++) {
+            final String trimmedCategoryName = categoryLevels[i].trim();
+            final int currentLevel = i + 1;
+
+            Category finalParent = parent;
+            Category category = categoryRepository.findByNameAndLevel(trimmedCategoryName, currentLevel)
+                    .orElseGet(() -> categoryRepository.save(
+                            Category.builder()
+                                    .name(trimmedCategoryName)
+                                    .parent(finalParent)
+                                    .level(currentLevel)
+                                    .build()
+                    ));
+
+            store.addCategory(category);  // 연관관계 편의 메서드 사용
+
+            parent = category;
+        }
+
+        storeRepository.save(store);  // 변경된 엔티티 저장
+    }
+
+
+
+    // 카테고리 조회 메서드 추가
+    @Transactional(readOnly = true)
+    public List<Category> getStoreCategories(String storeId) {
+        return storeCategoryMappingRepository.findByStoreId(storeId).stream()
+                .map(StoreCategoryMapping::getCategory)
+                .collect(Collectors.toList());
     }
 }

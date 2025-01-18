@@ -4,10 +4,7 @@ import com.example.ticketing.model.store.StoreDTO;
 import com.example.ticketing.service.store.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +22,12 @@ public class StoreController {
     ) {
         List<StoreDTO> stores = storeService.searchNearByRestaurants(keyword, latitude, longitude);
         return ResponseEntity.ok(stores);
+    }
+
+    @GetMapping("/{storeId}")
+    public ResponseEntity<StoreDTO> getStoreDetail(@PathVariable String storeId) {
+        StoreDTO storeDTO = storeService.getOrFetchingStore(storeId);
+        return ResponseEntity.ok(storeDTO);
     }
 
 
