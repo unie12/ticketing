@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -46,26 +48,4 @@ public class KakaoMapService {
         return response.getBody();
     }
 
-    public Object getPlaceDetail(String placeId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK " + apiKey);
-
-        String url = UriComponentsBuilder
-                .fromHttpUrl("https://dapi.kakao.com/v2/local/search/place.json")
-                .queryParam("id", placeId)
-                .build()
-                .toUriString();
-
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Object> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                Object.class
-        );
-
-        log.info("Response: {}", response.getBody());
-        return response.getBody();
-    }
 }
