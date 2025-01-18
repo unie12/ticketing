@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -36,6 +37,8 @@ public class QStore extends EntityPathBase<Store> {
     public final StringPath placeUrl = createString("placeUrl");
 
     public final StringPath roadAddressName = createString("roadAddressName");
+
+    public final ListPath<StoreCategoryMapping, QStoreCategoryMapping> storeCategoryMappings = this.<StoreCategoryMapping, QStoreCategoryMapping>createList("storeCategoryMappings", StoreCategoryMapping.class, QStoreCategoryMapping.class, PathInits.DIRECT2);
 
     public final NumberPath<Double> x = createNumber("x", Double.class);
 
