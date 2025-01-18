@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,6 +31,9 @@ public class Store {
     private String categoryName;
 
     private String placeUrl;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StoreCategoryMapping> storeCategoryMappings = new ArrayList<>();
 
     @Builder
     public Store(String id, String placeName, String addressName, String roadAddressName, String phone, Double x, Double y, String categoryGroupCode, String categoryGroupName, String categoryName, String placeUrl) {
@@ -56,4 +62,12 @@ public class Store {
         this.placeUrl = dto.getPlaceUrl();
     }
 
+    public void addCategory(Category category) {
+        StoreCategoryMapping mapping = new StoreCategoryMapping(this, category);
+    }
+
+    public void removeCategory(Category category) {
+        storeCategoryMappings.removeIf(mapping ->
+                mapping.getCategory().equals(category));
+    }
 }
