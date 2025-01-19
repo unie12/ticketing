@@ -13,6 +13,7 @@ import com.example.ticketing.repository.store.StoreRepository;
 import com.example.ticketing.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final StoreRepository storeRepository;
 
     @Override
+    @Transactional
     public ReviewResponse writeReview(ReviewRequest request, Long userId, String storeId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
@@ -55,6 +57,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
     public ReviewResponse modifyReview(Long reviewId, ReviewRequest request, Long userID) {
         Review review = findReviewAndValidateUser(reviewId, userID);
         review.updateContent(request.getContent());

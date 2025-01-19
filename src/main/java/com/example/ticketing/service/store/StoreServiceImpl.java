@@ -1,9 +1,9 @@
 package com.example.ticketing.service.store;
 
-import com.example.ticketing.model.store.Category;
-import com.example.ticketing.model.store.Store;
-import com.example.ticketing.model.store.StoreCategoryMapping;
-import com.example.ticketing.model.store.StoreDTO;
+import com.example.ticketing.exception.ErrorCode;
+import com.example.ticketing.exception.ReviewException;
+import com.example.ticketing.model.store.*;
+import com.example.ticketing.repository.favorite.FavoriteRepository;
 import com.example.ticketing.repository.store.CategoryRepository;
 import com.example.ticketing.repository.store.StoreCategoryMappingRepository;
 import com.example.ticketing.repository.store.StoreRepository;
@@ -15,7 +15,9 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,19 +29,31 @@ public class StoreServiceImpl implements StoreService {
     private final CategoryRepository categoryRepository;
     private final StoreCategoryMappingRepository storeCategoryMappingRepository;
     private final CacheManager cacheManager;
+    private final FavoriteRepository favoriteRepository;
 
     @Override
     @Transactional
-    public List<StoreDTO> searchNearByRestaurants(String keyword, double latitude, double longitude) {
+    public List<StoreResponseDTO> searchNearByRestaurants(String keyword, double latitude, double longitude, Long userId) {
         Object response = kakaoMapService.searchPlaces(keyword, latitude, longitude);
         List<StoreDTO> stores = StoreDTO.from(response);
+
+        Set<String> favoriteStoreIds;
+        if (userId != null) {
+            favoriteStoreIds = favoriteRepository.findStoreIdsByUserId(userId);
+        } else {
+            favoriteStoreIds = new HashSet<>();
+        }
+
+        List<StoreResponseDTO> result = stores.stream()
+                .map(store -> StoreResponseDTO.from(store, favoriteStoreIds.contains(store.getId())))
+                .collect(Collectors.toList());
 
         // 검색 결과를 캐시에 저장
         stores.forEach(store -> {
             cacheManager.getCache("stores").put(store.getId(), store);
         });
 
-        return stores;
+        return result;
     }
 
     @Override
@@ -70,28 +84,46 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Transactional
-    public StoreDTO getOrFetchingStore(String storeId) {
-        return storeRepository.findById(storeId)
+    public StoreResponseDTO  getOrFetchingStore(String storeId, Long userId) {
+
+        StoreDTO storeDTO = storeRepository.findById(storeId)
                 .map(StoreDTO::from)
                 .orElseGet(() -> {
-                    Cache.ValueWrapper cached = cacheManager.getCache("stores")
-                            .get(storeId);
-
+                    Cache.ValueWrapper cached = cacheManager.getCache("stores").get(storeId);
                     if (cached != null) {
-                        StoreDTO cachedStore = (StoreDTO) cached.get();
-                        Store store = cachedStore.toEntity();
-
-                        // 카테고리 처리
-                        if (cachedStore.getCategoryName() != null) {
-                            processCategoryString(store, cachedStore.getCategoryName());
-                        }
-
-                        Store savedStore = storeRepository.save(store);
-                        return StoreDTO.from(savedStore);
+                        return (StoreDTO) cached.get();
                     }
-
                     throw new RuntimeException("Store not found: " + storeId);
                 });
+
+        boolean isFavorite = false;
+        if (userId != null) {
+            isFavorite = favoriteRepository.existsByUserIdAndStoreId(userId, storeId);
+        }
+
+        return StoreResponseDTO.from(storeDTO, isFavorite);
+
+//        return storeRepository.findById(storeId)
+//                .map(StoreDTO::from)
+//                .orElseGet(() -> {
+//                    Cache.ValueWrapper cached = cacheManager.getCache("stores")
+//                            .get(storeId);
+//
+//                    if (cached != null) {
+//                        StoreDTO cachedStore = (StoreDTO) cached.get();
+//                        Store store = cachedStore.toEntity();
+//
+//                        // 카테고리 처리
+//                        if (cachedStore.getCategoryName() != null) {
+//                            processCategoryString(store, cachedStore.getCategoryName());
+//                        }
+//
+//                        Store savedStore = storeRepository.save(store);
+//                        return StoreDTO.from(savedStore);
+//                    }
+//
+//                    throw new RuntimeException("Store not found: " + storeId);
+//                });
     }
 
     private void processCategoryString(Store store, String categoryString) {
@@ -132,5 +164,11 @@ public class StoreServiceImpl implements StoreService {
         return storeCategoryMappingRepository.findByStoreId(storeId).stream()
                 .map(StoreCategoryMapping::getCategory)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Store findStoreById(String storeId) {
+        return storeRepository.findById(storeId)
+                .orElseThrow(() -> new ReviewException(ErrorCode.STORE_NOT_FOUND));
     }
 }
