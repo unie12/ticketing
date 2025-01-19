@@ -26,6 +26,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final BooleanPath emailVerified = createBoolean("emailVerified");
 
+    public final ListPath<com.example.ticketing.model.favorite.Favorite, com.example.ticketing.model.favorite.QFavorite> favorites = this.<com.example.ticketing.model.favorite.Favorite, com.example.ticketing.model.favorite.QFavorite>createList("favorites", com.example.ticketing.model.favorite.Favorite.class, com.example.ticketing.model.favorite.QFavorite.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath imgUrl = createString("imgUrl");

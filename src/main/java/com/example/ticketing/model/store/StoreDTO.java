@@ -23,9 +23,9 @@ public class StoreDTO {
     private Double y;
     private String categoryGroupCode;
     private String categoryGroupName;
-    private String categoryName;  // 카테고리 전체 경로 (예: "음식점 > 한식 > 국수")
+    private String categoryName;
     private String placeUrl;
-    private List<CategoryDTO> categories;  // 카테고리 계층 정보
+    private List<CategoryDTO> categories;
 
     public static List<StoreDTO> from(Object response) {
         if (!(response instanceof Map)) {

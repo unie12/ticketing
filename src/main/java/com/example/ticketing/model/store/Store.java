@@ -1,5 +1,6 @@
 package com.example.ticketing.model.store;
 
+import com.example.ticketing.model.favorite.Favorite;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -34,6 +35,9 @@ public class Store {
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StoreCategoryMapping> storeCategoryMappings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
+    private List<Favorite> favorites = new ArrayList<>();
 
     @Builder
     public Store(String id, String placeName, String addressName, String roadAddressName, String phone, Double x, Double y, String categoryGroupCode, String categoryGroupName, String categoryName, String placeUrl) {
