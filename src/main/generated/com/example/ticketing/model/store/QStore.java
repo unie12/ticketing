@@ -28,6 +28,8 @@ public class QStore extends EntityPathBase<Store> {
 
     public final StringPath categoryName = createString("categoryName");
 
+    public final ListPath<com.example.ticketing.model.favorite.Favorite, com.example.ticketing.model.favorite.QFavorite> favorites = this.<com.example.ticketing.model.favorite.Favorite, com.example.ticketing.model.favorite.QFavorite>createList("favorites", com.example.ticketing.model.favorite.Favorite.class, com.example.ticketing.model.favorite.QFavorite.class, PathInits.DIRECT2);
+
     public final StringPath id = createString("id");
 
     public final StringPath phone = createString("phone");

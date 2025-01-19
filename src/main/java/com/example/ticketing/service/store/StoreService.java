@@ -1,12 +1,15 @@
 package com.example.ticketing.service.store;
 
+import com.example.ticketing.model.store.Store;
 import com.example.ticketing.model.store.StoreDTO;
+import com.example.ticketing.model.store.StoreResponseDTO;
 
 import java.util.List;
 
 public interface StoreService {
-    List<StoreDTO> searchNearByRestaurants(String keyword, double latitude, double longitude);
+    List<StoreResponseDTO> searchNearByRestaurants(String keyword, double latitude, double longitude, Long userId);
     StoreDTO saveOrUpdateStore(StoreDTO storeDTO);
-    StoreDTO getOrFetchingStore(String storeId);
+    StoreResponseDTO getOrFetchingStore(String storeId, Long userId);
+    Store findStoreById(String storeId);
 
 }

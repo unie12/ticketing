@@ -1,6 +1,8 @@
 package com.example.ticketing.controller.store;
 
 import com.example.ticketing.model.store.StoreDTO;
+import com.example.ticketing.model.store.StoreResponseDTO;
+import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.store.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,21 +15,35 @@ import java.util.List;
 @RequestMapping("/api/store")
 public class StoreController {
     private final StoreService storeService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/search")
-    public ResponseEntity<List<StoreDTO>> searchStores(
+    public ResponseEntity<List<StoreResponseDTO>> searchStores(
             @RequestParam String keyword,
-            @RequestParam(defaultValue = "37.28295252865072") double latitude, //default value 아주대로 설정하기
-            @RequestParam(defaultValue = "127.04354383208234") double longitude
+            @RequestParam(defaultValue = "37.28295252865072") double latitude,
+            @RequestParam(defaultValue = "127.04354383208234") double longitude,
+            @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        List<StoreDTO> stores = storeService.searchNearByRestaurants(keyword, latitude, longitude);
+        Long userId = getUserIdFromToken(token);
+        List<StoreResponseDTO> stores = storeService.searchNearByRestaurants(keyword, latitude, longitude, userId);
         return ResponseEntity.ok(stores);
     }
 
     @GetMapping("/{storeId}")
-    public ResponseEntity<StoreDTO> getStoreDetail(@PathVariable String storeId) {
-        StoreDTO storeDTO = storeService.getOrFetchingStore(storeId);
+    public ResponseEntity<StoreResponseDTO> getStoreDetail(
+            @PathVariable String storeId,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        Long userId = getUserIdFromToken(token);
+        StoreResponseDTO storeDTO = storeService.getOrFetchingStore(storeId, userId);
+//        StoreDTO storeDTO = storeService.getOrFetchingStore(storeId);
         return ResponseEntity.ok(storeDTO);
+    }
+
+    private Long getUserIdFromToken(String token) {
+        if (token != null && !token.isEmpty()) {
+            return jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        }
+        return null;
     }
 
 

@@ -2,6 +2,7 @@ package com.example.ticketing.model.user;
 
 import com.example.ticketing.model.auth.AuthProvider;
 import com.example.ticketing.model.event.Reservation;
+import com.example.ticketing.model.favorite.Favorite;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"reservations", "userCoupons"})
+@ToString(exclude = {"reservations", "userCoupons", "favorites"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,12 +62,14 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserCoupon> userCoupons = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Favorite> favorites = new ArrayList<>();
+
     @Builder
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
-//        this.provider = provider;
     }
 
     public void verifyEmail() {
@@ -80,19 +83,4 @@ public class User {
         this.verificationTokenExpiry = LocalDateTime.now().plusHours(24);
     }
 
-//    public boolean isAccountLocked() {
-//        return lockTime != null && LocalDateTime.now().isBefore(lockTime);
-//    }
-//
-//    public void incrementLoginAttempts() {
-//        this.loginAttempts++;
-//        if (this.loginAttempts >= 5) {
-//            this.lockTime = LocalDateTime.now().plusMinutes(30);
-//        }
-//    }
-//
-//    public void resetLoginAttempts() {
-//        this.loginAttempts = 0;
-//        this.lockTime = null;
-//    }
 }
