@@ -91,7 +91,16 @@ public class StoreServiceImpl implements StoreService {
                 .orElseGet(() -> {
                     Cache.ValueWrapper cached = cacheManager.getCache("stores").get(storeId);
                     if (cached != null) {
-                        return (StoreDTO) cached.get();
+                        StoreDTO cachedStore = (StoreDTO) cached.get();
+                        Store store = cachedStore.toEntity();
+
+                        // 카테고리 처리
+                        if (cachedStore.getCategoryName() != null) {
+                            processCategoryString(store, cachedStore.getCategoryName());
+                        }
+
+                        Store savedStore = storeRepository.save(store);
+                        return StoreDTO.from(savedStore);
                     }
                     throw new RuntimeException("Store not found: " + storeId);
                 });

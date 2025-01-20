@@ -1,5 +1,6 @@
-package com.example.ticketing.model.favorite;
+package com.example.ticketing.model.heart;
 
+import com.example.ticketing.model.review.Review;
 import com.example.ticketing.model.store.Store;
 import com.example.ticketing.model.user.User;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Favorite {
+public class Heart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,20 +24,20 @@ public class Favorite {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id")
-    private Store store;
+    @JoinColumn(name = "review_id")
+    private Review review;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Builder
-    public Favorite(User user, Store store) {
+    public Heart(User user, Review review) {
         this.user = user;
-        this.store = store;
+        this.review = review;
     }
 
-    private void addToUserAndStore() {
-        this.user.getFavorites().add(this);
-        this.store.getFavorites().add(this);
+    public void addHeart() {
+        this.review.getHearts().add(this);
+        this.user.getHearts().add(this);
     }
 }

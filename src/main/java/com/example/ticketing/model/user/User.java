@@ -3,6 +3,8 @@ package com.example.ticketing.model.user;
 import com.example.ticketing.model.auth.AuthProvider;
 import com.example.ticketing.model.event.Reservation;
 import com.example.ticketing.model.favorite.Favorite;
+import com.example.ticketing.model.heart.Heart;
+import com.example.ticketing.model.review.Review;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +16,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"reservations", "userCoupons", "favorites"})
+@ToString(exclude = {"reservations", "userCoupons", "favorites", "hearts"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,10 +51,6 @@ public class User {
     @Column(nullable = false)
     private Role role = Role.ROLE_USER;
 
-    // 삭제 고려
-//    private int loginAttempts = 0;
-//    private LocalDateTime lockTime;
-
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -64,6 +62,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Favorite> favorites = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Heart> hearts = new ArrayList<>();
 
     @Builder
     public User(String username, String email, String password) {
@@ -81,6 +82,11 @@ public class User {
     public void generateVerificationToken() {
         this.verificationToken = UUID.randomUUID().toString();
         this.verificationTokenExpiry = LocalDateTime.now().plusHours(24);
+    }
+
+    public boolean hasLikedReview(Review review) {
+        return this.hearts.stream()
+                .anyMatch(heart -> heart.getReview().equals(review));
     }
 
 }

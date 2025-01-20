@@ -84,7 +84,9 @@ public enum ErrorCode {
     UNAUTHORIZED_REVIEW_DELETION(HttpStatus.FORBIDDEN, "다른 사용자의 리뷰를 삭제할 수 없습니다."),
     REVIEW_MODIFICATION_TIME_EXPIRED(HttpStatus.BAD_REQUEST, "리뷰 수정 가능 시간이 만료되었습니다."),
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가게를 찾을 수 없습니다."),
-    ;
+    TOO_MANY_IMAGES(HttpStatus.BAD_REQUEST, "이미지는 최대 5장까지입니다." ),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 용량이 너무 큽니다 (최대 5MB)"), 
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_GATEWAY, "잘못된 이미지 파일입니다");
 
     private final HttpStatus status;
     private final String message;

@@ -31,6 +31,7 @@ public class FavoriteServiceImpl implements FavoriteService{
         Optional<Favorite> existingFavorite = favoriteRepository.findByUserAndStore(user, store);
         if (existingFavorite.isPresent()) {
             favoriteRepository.delete(existingFavorite.get());
+            store.decrementFavoriteCount();
 //            return FavoriteDTO.from(existingFavorite.get());
             return null;
         } else {
@@ -38,7 +39,9 @@ public class FavoriteServiceImpl implements FavoriteService{
                     .user(user)
                     .store(store)
                     .build();
-            return FavoriteDTO.from(favoriteRepository.save(favorite));
+            FavoriteDTO dto = FavoriteDTO.from(favoriteRepository.save(favorite));
+            store.incrementFavoriteCount();
+            return dto;
         }
 
     }

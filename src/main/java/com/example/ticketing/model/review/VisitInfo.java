@@ -1,4 +1,4 @@
-package com.example.ticketing.model.favorite;
+package com.example.ticketing.model.review;
 
 import com.example.ticketing.model.store.Store;
 import com.example.ticketing.model.user.User;
@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Favorite {
+public class VisitInfo {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,16 +28,28 @@ public class Favorite {
     private Store store;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime visitDateTime;
+
+    @Enumerated(EnumType.STRING)
+    private Crowdedness crowdedness;
+
+    @OneToOne(mappedBy = "visitInfo", cascade = CascadeType.ALL)
+    private Review review;
 
     @Builder
-    public Favorite(User user, Store store) {
+    public VisitInfo(User user, Store store, LocalDateTime visitDateTime, Crowdedness crowdedness) {
         this.user = user;
         this.store = store;
+        this.visitDateTime = visitDateTime;
+        this.crowdedness = crowdedness;
     }
 
-    private void addToUserAndStore() {
-        this.user.getFavorites().add(this);
-        this.store.getFavorites().add(this);
+    public void updateVisitInfo(LocalDateTime visitDateTime, Crowdedness crowdedness) {
+        this.visitDateTime = visitDateTime;
+        this.crowdedness = crowdedness;
+    }
+
+    public void setReview(Review review) {
+        this.review = review;
     }
 }
