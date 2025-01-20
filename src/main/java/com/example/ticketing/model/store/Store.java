@@ -33,6 +33,12 @@ public class Store {
 
     private String placeUrl;
 
+    @Column(nullable = false)
+    private int reviewCount = 0;
+
+    @Column(nullable = false)
+    private int favoriteCount = 0;
+
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StoreCategoryMapping> storeCategoryMappings = new ArrayList<>();
 
@@ -74,4 +80,21 @@ public class Store {
         storeCategoryMappings.removeIf(mapping ->
                 mapping.getCategory().equals(category));
     }
+
+    public void incrementReviewCount() {
+        this.reviewCount++;
+    }
+
+    public void decrementReviewCount() {
+        this.reviewCount = Math.max(0, this.reviewCount - 1);
+    }
+
+    public void incrementFavoriteCount() {
+        this.favoriteCount++;
+    }
+
+    public void decrementFavoriteCount() {
+        this.favoriteCount = Math.max(0, this.favoriteCount - 1);
+    }
+
 }
