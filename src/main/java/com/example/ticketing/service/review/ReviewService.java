@@ -1,5 +1,6 @@
 package com.example.ticketing.service.review;
 
+import com.example.ticketing.model.review.Review;
 import com.example.ticketing.model.review.ReviewRequest;
 import com.example.ticketing.model.review.ReviewResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,5 +13,7 @@ public interface ReviewService {
     ReviewResponse modifyReview(Long reviewId, ReviewRequest request, List<MultipartFile> images, Long userId) throws IOException;
     ReviewResponse deleteReview(Long reviewId, Long userId);
     List<ReviewResponse> getReviewsByUser(Long userId);
-    List<ReviewResponse> getReviewsByStore(String storeId);
+    List<ReviewResponse> getReviewsByStore(Long userId, String storeId);
+
+    Review findReviewById(Long reviewId);
 }

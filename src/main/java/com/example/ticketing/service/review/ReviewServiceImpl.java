@@ -9,6 +9,8 @@ import com.example.ticketing.model.user.User;
 import com.example.ticketing.repository.review.ReviewRepository;
 import com.example.ticketing.repository.store.StoreRepository;
 import com.example.ticketing.repository.user.UserRepository;
+import com.example.ticketing.service.store.StoreService;
+import com.example.ticketing.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,31 +27,33 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final StoreRepository storeRepository;
     private final ImageUploadService imageUploadService;
+    private final UserService userService;
+    private final StoreService storeService;
 
     @Override
     @Transactional
     public ReviewResponse writeReview(ReviewRequest request, List<MultipartFile> images, Long userId, String storeId) throws IOException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new ReviewException(ErrorCode.STORE_NOT_FOUND));
+        User user = userService.findUserById(userId);
+        Store store = storeService.findStoreById(storeId);
 
         if (images != null) {
             validateImages(images);
         }
 
         Review review = createReview(request, user, store);
+        store.incrementReviewCount();
 
         if (images != null && !images.isEmpty()) {
             processImages(images, review);
         }
 
-        return ReviewResponse.from(reviewRepository.save(review));
+        return ReviewResponse.from(reviewRepository.save(review), user.hasLikedReview(review));
     }
 
     @Override
     @Transactional
     public ReviewResponse modifyReview(Long reviewId, ReviewRequest request, List<MultipartFile> images, Long userId) throws IOException {
+        User user = userService.findUserById(userId);
         Review review = findReviewAndValidateUser(reviewId, userId);
         review.updateContent(request.getContent());
         review.updateRating(request.getRating());
@@ -69,34 +73,46 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Review updatedReview = reviewRepository.save(review);
-        return ReviewResponse.from(updatedReview);
+        return ReviewResponse.from(updatedReview, user.hasLikedReview(review));
     }
 
     @Override
     public ReviewResponse deleteReview(Long reviewId, Long userId) {
+        User user = userService.findUserById(userId);
         Review review = findReviewAndValidateUser(reviewId, userId);
+        Store store = review.getStore();
+        store.decrementReviewCount();
         reviewRepository.delete(review);
-        return ReviewResponse.from(review);
+        return ReviewResponse.from(review, user.hasLikedReview(review));
     }
 
     @Override
     public List<ReviewResponse> getReviewsByUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
+        User user = userService.findUserById(userId);
         List<Review> reviews = reviewRepository.findByUser(user);
         return reviews.stream()
-                .map(ReviewResponse::from)
+                .map(review -> {
+                    return ReviewResponse.from(review, user.hasLikedReview(review));
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ReviewResponse> getReviewsByStore(String storeId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new ReviewException(ErrorCode.STORE_NOT_FOUND));
+    public List<ReviewResponse> getReviewsByStore(Long userId, String storeId) {
+        User user = userService.findUserById(userId);
+        Store store = storeService.findStoreById(storeId);
         List<Review> reviews = reviewRepository.findByStore(store);
         return reviews.stream()
-                .map(ReviewResponse::from)
+                .map(review -> {
+                    return ReviewResponse.from(review, user.hasLikedReview(review));
+                })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Review findReviewById(Long reviewId) {
+        return reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
     private Review findReviewAndValidateUser(Long reviewId, Long userId) {

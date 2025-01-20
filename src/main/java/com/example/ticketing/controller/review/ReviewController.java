@@ -61,7 +61,7 @@ public class ReviewController {
     public ResponseEntity<ReviewResponse> deleteReview(
             @PathVariable Long reviewId,
             @RequestHeader("Authorization") String token) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));;
+        Long userId = getUserIdFromToken(token);;
 
         return ResponseEntity.ok(reviewService.deleteReview(reviewId, userId));
     }
@@ -78,8 +78,11 @@ public class ReviewController {
      * GET 해당 store의 리뷰 목록
      */
     @GetMapping("/store/{storeId}")
-    public ResponseEntity<List<ReviewResponse>> getReviewsByStore(@PathVariable String storeId){
-        return ResponseEntity.ok(reviewService.getReviewsByStore(storeId));
+    public ResponseEntity<List<ReviewResponse>> getReviewsByStore(
+            @PathVariable String storeId,
+            @RequestHeader("Authorization") String token){
+        Long userId = getUserIdFromToken(token);
+        return ResponseEntity.ok(reviewService.getReviewsByStore(userId, storeId));
     }
 
     /**

@@ -26,6 +26,10 @@ public class QReview extends EntityPathBase<Review> {
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
+    public final NumberPath<Integer> heartCount = createNumber("heartCount", Integer.class);
+
+    public final ListPath<com.example.ticketing.model.heart.Heart, com.example.ticketing.model.heart.QHeart> hearts = this.<com.example.ticketing.model.heart.Heart, com.example.ticketing.model.heart.QHeart>createList("hearts", com.example.ticketing.model.heart.Heart.class, com.example.ticketing.model.heart.QHeart.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final ListPath<ReviewImage, QReviewImage> images = this.<ReviewImage, QReviewImage>createList("images", ReviewImage.class, QReviewImage.class, PathInits.DIRECT2);
