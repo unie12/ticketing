@@ -34,4 +34,9 @@ public class Favorite {
         this.user = user;
         this.store = store;
     }
+
+    private void addToUserAndStore() {
+        this.user.getFavorites().add(this);
+        this.store.getFavorites().add(this);
+    }
 }
