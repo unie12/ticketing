@@ -1,10 +1,12 @@
 package com.example.ticketing.controller.user;
 
 import com.example.ticketing.model.favorite.FavoriteDTO;
+import com.example.ticketing.model.heart.HeartDTO;
 import com.example.ticketing.model.review.ReviewResponse;
 import com.example.ticketing.model.user.UserActivitySummaryDTO;
 import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.favorite.FavoriteService;
+import com.example.ticketing.service.heart.HeartService;
 import com.example.ticketing.service.review.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import java.util.List;
 public class UserActivityController {
     private final ReviewService reviewService;
     private final FavoriteService favoriteService;
+    private final HeartService heartService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/summary")
@@ -28,9 +31,11 @@ public class UserActivityController {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         List<ReviewResponse> reviews = reviewService.getReviewsByUser(userId);
         List<FavoriteDTO> myFavorites = favoriteService.getMyFavorites(userId);
+        List<HeartDTO> myHearts = heartService.getMyHearts(userId);
         UserActivitySummaryDTO summary = UserActivitySummaryDTO.builder()
                 .reviews(reviews)
                 .favorites(myFavorites)
+                .hearts(myHearts)
                 .build();
         return ResponseEntity.ok(summary);
     }
@@ -45,6 +50,12 @@ public class UserActivityController {
     public ResponseEntity<List<FavoriteDTO>> getUserFavorites(@RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         return ResponseEntity.ok(favoriteService.getMyFavorites(userId));
+    }
+
+    @GetMapping("/heart")
+    public ResponseEntity<List<HeartDTO>> getUserHearts(@RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        return ResponseEntity.ok(heartService.getMyHearts(userId));
     }
 
 }
