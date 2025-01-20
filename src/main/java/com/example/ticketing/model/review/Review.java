@@ -11,6 +11,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,8 +32,15 @@ public class Review {
 
     private String content;
 
-    @Column(nullable = false)
-    private int rating;
+    @Column(nullable = true)
+    private Integer rating;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "visit_info_id")
+    private VisitInfo visitInfo;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewImage> images = new ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false)
@@ -41,15 +50,14 @@ public class Review {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-//    private enum 나중에 클릭만으로 평가 남기게 하는
-
 
     @Builder
-    public Review(User user, Store store, String content, int rating) {
+    public Review(User user, Store store, String content, Integer rating, VisitInfo visitInfo) {
         this.user = user;
         this.store = store;
         this.content = content;
         this.rating = rating;
+        this.visitInfo = visitInfo;
         this.updatedAt = this.createdAt;
     }
 
@@ -59,5 +67,10 @@ public class Review {
 
     public void updateRating(int rating) {
         this.rating = rating;
+    }
+
+    public void addImage(ReviewImage reviewImage) {
+        this.images.add(reviewImage);
+        reviewImage.setReview(this);
     }
 }

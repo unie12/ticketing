@@ -28,6 +28,8 @@ public class QReview extends EntityPathBase<Review> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final ListPath<ReviewImage, QReviewImage> images = this.<ReviewImage, QReviewImage>createList("images", ReviewImage.class, QReviewImage.class, PathInits.DIRECT2);
+
     public final NumberPath<Integer> rating = createNumber("rating", Integer.class);
 
     public final com.example.ticketing.model.store.QStore store;
@@ -35,6 +37,8 @@ public class QReview extends EntityPathBase<Review> {
     public final DateTimePath<java.time.LocalDateTime> updatedAt = createDateTime("updatedAt", java.time.LocalDateTime.class);
 
     public final com.example.ticketing.model.user.QUser user;
+
+    public final QVisitInfo visitInfo;
 
     public QReview(String variable) {
         this(Review.class, forVariable(variable), INITS);
@@ -56,6 +60,7 @@ public class QReview extends EntityPathBase<Review> {
         super(type, metadata, inits);
         this.store = inits.isInitialized("store") ? new com.example.ticketing.model.store.QStore(forProperty("store")) : null;
         this.user = inits.isInitialized("user") ? new com.example.ticketing.model.user.QUser(forProperty("user")) : null;
+        this.visitInfo = inits.isInitialized("visitInfo") ? new QVisitInfo(forProperty("visitInfo"), inits.get("visitInfo")) : null;
     }
 
 }
