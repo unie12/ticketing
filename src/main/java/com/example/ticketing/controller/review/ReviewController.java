@@ -4,11 +4,16 @@ import com.example.ticketing.model.review.ReviewRequest;
 import com.example.ticketing.model.review.ReviewResponse;
 import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.review.ReviewService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -25,28 +30,28 @@ public class ReviewController {
     /**
      * POST 특정 store 리뷰 작성
      */
-    @PostMapping("/store/{storeId}")
+    @PostMapping(value = "/store/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReviewResponse> writeReview(
             @PathVariable String storeId,
-            @RequestBody ReviewRequest request,
-            @RequestHeader("Authorization") String token) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));;
-
+            @ModelAttribute ReviewRequest reviewRequest,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestHeader("Authorization") String token) throws IOException {
+        Long userId = getUserIdFromToken(token);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(reviewService.writeReview(request, userId, storeId));
+                .body(reviewService.writeReview(reviewRequest, images, userId, storeId));
     }
 
     /**
      * PUT 특정 store 리뷰 수정
      */
-    @PutMapping("/{reviewId}")
+    @PutMapping(value = "/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReviewResponse> modifyReview(
             @PathVariable Long reviewId,
-            @RequestBody ReviewRequest request,
-            @RequestHeader("Authorization") String token) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));;
-
-        return ResponseEntity.ok(reviewService.modifyReview(reviewId, request, userId));
+            @ModelAttribute ReviewRequest reviewRequest,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestHeader("Authorization") String token) throws IOException {
+        Long userId = getUserIdFromToken(token);
+        return ResponseEntity.ok(reviewService.modifyReview(reviewId, reviewRequest, images, userId));
     }
 
     /**
