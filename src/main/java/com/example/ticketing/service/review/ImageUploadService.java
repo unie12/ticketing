@@ -7,11 +7,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -45,23 +54,70 @@ public class ImageUploadService {
             throw new IllegalArgumentException("Image file cannot be empty");
         }
 
-        // 파일 확장자 검증
-        String originalFilename = image.getOriginalFilename();
-        String extension = getExtension(originalFilename);
+        String extension = getExtension(image.getOriginalFilename());
         validateImageExtension(extension);
+        String fileName = generateFileName(image.getOriginalFilename());
 
-        // 파일명 생성 및 저장
-        String fileName = generateFileName(originalFilename);
-        Path filePath = Paths.get(uploadDir, fileName);
+        BufferedImage originalImage = ImageIO.read(image.getInputStream());
+        if (originalImage == null) {
+            throw new IOException("Failed to read image file");
+        }
 
-        try {
-            Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            return generateImageUrl(fileName);
-        } catch (IOException e) {
-            log.error("Failed to save image: {}", fileName, e);
-            throw new IOException("Failed to save image: " + fileName, e);
+        // 최종 리사이징 (400px)
+        int targetWidth = Math.min(originalImage.getWidth(), 400);
+        BufferedImage resizedImage = resizeImage(originalImage, targetWidth);
+
+        Path filePath = Paths.get(uploadDir).resolve(fileName);
+        saveCompressedImage(resizedImage, filePath.toString());
+
+        return generateImageUrl(fileName);
+    }
+
+    private BufferedImage resizeImage(BufferedImage originalImage, int targetWidth) {
+        // 항상 리사이징을 강제로 수행
+        double ratio = (double) targetWidth / originalImage.getWidth();
+        int targetHeight = (int) (originalImage.getHeight() * ratio);
+
+        // 이미지 타입을 RGB로 강제 변환
+        BufferedImage resizedImage = new BufferedImage(
+                targetWidth,
+                targetHeight,
+                BufferedImage.TYPE_INT_RGB  // ARGB 대신 RGB 사용
+        );
+
+        // 리사이징 품질 향상
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+        g2d.dispose();
+
+        return resizedImage;
+    }
+
+
+    private void saveCompressedImage(BufferedImage image, String path) throws IOException {
+        File output = new File(path);
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+        if (!writers.hasNext()) {
+            throw new IOException("No image writer found");
+        }
+
+        ImageWriter writer = writers.next();
+        try (ImageOutputStream ios = ImageIO.createImageOutputStream(output)) {
+            writer.setOutput(ios);
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            if (param.canWriteCompressed()) {
+                param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                param.setCompressionQuality(0.6f); // 60% 품질
+            }
+            writer.write(null, new IIOImage(image, null, null), param);
+        } finally {
+            writer.dispose();
         }
     }
+
 
     private String generateFileName(String originalFilename) {
         return UUID.randomUUID().toString() + "_" + originalFilename;
