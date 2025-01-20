@@ -48,4 +48,8 @@ public class VisitInfo {
         this.visitDateTime = visitDateTime;
         this.crowdedness = crowdedness;
     }
+
+    public void setReview(Review review) {
+        this.review = review;
+    }
 }
