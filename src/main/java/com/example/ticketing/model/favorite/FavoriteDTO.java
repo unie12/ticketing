@@ -15,8 +15,9 @@ public class FavoriteDTO {
     private LocalDateTime createdAt;
 
     private int favoriteCount;
+    private boolean isFavorite;
 
-    public static FavoriteDTO from(Favorite favorite) {
+    public static FavoriteDTO from(Favorite favorite, boolean isFavorite) {
         return FavoriteDTO.builder()
                 .id(favorite.getId())
                 .username(favorite.getUser().getUsername())
@@ -24,6 +25,7 @@ public class FavoriteDTO {
                 .storeId(favorite.getStore().getId())
                 .createdAt(favorite.getCreatedAt())
                 .favoriteCount(favorite.getStore().getFavoriteCount())
+                .isFavorite(isFavorite)
                 .build();
     }
 }
