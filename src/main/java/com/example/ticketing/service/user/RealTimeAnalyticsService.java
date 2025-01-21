@@ -38,6 +38,10 @@ public class RealTimeAnalyticsService {
 
     }
 
+    /**
+     * 인기 가게 순위
+     * ZSet에 score 증가 (조회수)
+     */
     private void updatePopularStores(UserActivityEvent event) {
         String key = "popular:stores:views:" + LocalDate.now();
         redisTemplate.opsForZSet().incrementScore(key, event.getStoreId(), 1);
@@ -57,6 +61,9 @@ public class RealTimeAnalyticsService {
         redisTemplate.expire(key, WINDOW_SIZE_HOURS, TimeUnit.HOURS);
     }
 
+    /**
+     * 상위 n개 조회
+     */
     public List<String> getTopViewedStores(int limit) {
         String key = "popular:stores:views:" + LocalDate.now();
         Set<String> stores = redisTemplate.opsForZSet().reverseRange(key, 0, limit - 1);

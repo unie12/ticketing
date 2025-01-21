@@ -1,10 +1,15 @@
 package com.example.ticketing.config;
 
 import com.example.ticketing.model.user.UserActivityEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.RoundRobinAssignor;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,12 +18,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.ProducerListener;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 @Configuration
+@Slf4j
 public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -30,6 +42,7 @@ public class KafkaConfig {
      * 3. 다중 프로듀서-컨슈머 설정 -> 동시 처리 스레드 + 배치 리스닝 + 에러 핸들링 등
      * 4. 토픽 설정 -> cleanup_policy, retention_ms, segment_bytes, segment_ms 등
      * 5. 모니터링 및 메트릭스 추가
+     * 6. 메시지 전송 신뢰성
      */
 
     /**
@@ -44,6 +57,12 @@ public class KafkaConfig {
         config.put(ProducerConfig.ACKS_CONFIG, "all"); // replica가 메시지 제대로 수신했는지 acks=0, 1, all
         config.put(ProducerConfig.RETRIES_CONFIG, 3); // 전송 실패 재시도 횟수
 
+        // 성능 최적화 설정
+        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384); // 배치로 전송할 메시지 크기
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 1); // 배치 전송 대기 시간
+        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy"); // 메시지 압축 방식 -> 네트워크 대역폭 절약
+        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432); // 프로듀서 버퍼 메모리
+
         return new DefaultKafkaProducerFactory<>(config);
     }
 
@@ -56,6 +75,18 @@ public class KafkaConfig {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "analytics-group"); // 컨슈머 그룹 식별자
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // 처음부터 메시지 소비
+
+        // 컨슈머 동작 최적화 설정
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500); // 한 번에 가져올 최대 레코드 수
+        config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // poll 간격
+        config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3000); // heartbeat 전송 간격
+        config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 45000); // 세션 타임아웃
+
+        // 리밸런싱 전략 설정 -> RoundRobinAssignor 전략
+        // 파티션을 컨슈머들에게 순차적으로 할당
+        // 추가 고려 전략 (RangeAssignor, StickyAssignor, CooperativeStickyAssignor)
+        config.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG,
+                Collections.singletonList(RoundRobinAssignor.class));
 
         // UserActivityEvent 객체로 역직렬화
         JsonDeserializer<UserActivityEvent> jsonDeserializer = new JsonDeserializer<>(UserActivityEvent.class);
@@ -78,6 +109,16 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, UserActivityEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
+
+        // 동시성 설정
+        factory.setConcurrency(3);
+        factory.setBatchListener(true);
+
+        // 에러 핸들링
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new DeadLetterPublishingRecoverer(kafkaTemplate()),
+                new FixedBackOff(1000L, 2)
+        ));
         return factory;
     }
 
@@ -88,7 +129,20 @@ public class KafkaConfig {
      */
     @Bean
     public KafkaTemplate<String, UserActivityEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+        KafkaTemplate<String, UserActivityEvent> template = new KafkaTemplate<>(producerFactory());
+        template.setDefaultTopic("user-activities");
+
+        // 프로듀서 에러 핸들링
+        template.setProducerListener(new ProducerListener<String, UserActivityEvent>() {
+            @Override
+            public void onError(ProducerRecord<String, UserActivityEvent> record,
+                                RecordMetadata metadata,
+                                Exception exception) {
+                log.error("Error sending message: {}", record, exception);
+            }
+        });
+
+        return template;
     }
 
     /**
@@ -112,6 +166,12 @@ public class KafkaConfig {
      */
     @Bean
     public NewTopic userActivitiesTopic() {
+        Map<String, String> configs = new HashMap<>();
+        configs.put(TopicConfig.CLEANUP_POLICY_CONFIG, "delete"); // 오래된 메시지 삭제
+        configs.put(TopicConfig.RETENTION_MS_CONFIG, "604800000"); // 메시지 보관 기간 7일
+        configs.put(TopicConfig.SEGMENT_BYTES_CONFIG, "1073741824"); // 1GB
+        configs.put(TopicConfig.SEGMENT_MS_CONFIG, "604800000"); // 7일
+
         return TopicBuilder.name("user-activities")
                 .partitions(3)
                 .replicas(1)

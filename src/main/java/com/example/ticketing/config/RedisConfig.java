@@ -20,12 +20,19 @@ public class RedisConfig {
     @Value("${spring.redis.port}")
     private int redisPort;
 
+    /**
+     * 기본 연결 설정
+     */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(redisHost, redisPort);
         return new LettuceConnectionFactory(redisConfig);
     }
 
+    /**
+     * String 타입 템플릿
+     * 문자열 데이터 처리를 위한 설정
+     */
    @Bean
     public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
@@ -39,6 +46,9 @@ public class RedisConfig {
         return template;
     }
 
+    /**
+     * Object 타입 템플릿
+     */
     @Bean
     public RedisTemplate<String, Object> objectRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();

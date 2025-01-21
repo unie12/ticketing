@@ -19,6 +19,11 @@ public class UserActivityLogService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ReviewService reviewService;
 
+    /**
+     * 사용자 활동을 이벤트 형태로 Kafka에 Produce
+     * "user-activity" 토픽으로 UserActivityEvent 객체 발행 (비동기적 메시지 전송)
+     */
+
     public void logStoreView(String storeId, Long userId) {
         UserActivityEvent event = UserActivityEvent.builder()
                 .eventType(UserActivity.STORE_VIEW)
