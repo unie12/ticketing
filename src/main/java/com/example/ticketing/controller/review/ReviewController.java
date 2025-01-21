@@ -4,6 +4,7 @@ import com.example.ticketing.model.review.ReviewRequest;
 import com.example.ticketing.model.review.ReviewResponse;
 import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.review.ReviewService;
+import com.example.ticketing.service.user.UserActivityLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ReviewController {
     private final ReviewService reviewService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserActivityLogService activityLogService;
 
     private Long getUserIdFromToken(String token) {
         return jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -37,8 +39,11 @@ public class ReviewController {
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestHeader("Authorization") String token) throws IOException {
         Long userId = getUserIdFromToken(token);
+        ReviewResponse reviewResponse = reviewService.writeReview(reviewRequest, images, userId, storeId);
+        activityLogService.logReviewCreate(reviewResponse.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(reviewService.writeReview(reviewRequest, images, userId, storeId));
+                .body(reviewResponse);
     }
 
     /**

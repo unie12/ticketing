@@ -39,7 +39,7 @@ public class FavoriteServiceImpl implements FavoriteService{
                     .user(user)
                     .store(store)
                     .build();
-            FavoriteDTO dto = FavoriteDTO.from(favoriteRepository.save(favorite));
+            FavoriteDTO dto = FavoriteDTO.from(favoriteRepository.save(favorite), true);
             store.incrementFavoriteCount();
             return dto;
         }
@@ -52,7 +52,9 @@ public class FavoriteServiceImpl implements FavoriteService{
         User user = userService.findUserById(userId);
         List<Favorite> favorites = favoriteRepository.findByUser(user);
         return favorites.stream()
-                .map(FavoriteDTO::from)
+                .map(favorite -> {
+                    return FavoriteDTO.from(favorite, favoriteRepository.existsByUserIdAndStoreId(userId, favorite.getStore().getId()));
+                })
                 .collect(Collectors.toList());
     }
 }
