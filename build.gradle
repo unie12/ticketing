@@ -24,44 +24,29 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
+	// Spring Boot Starters
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-//	runtimeOnly 'io.asyncer:r2dbc-mysql'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
-	// Kafka
-	implementation 'org.springframework.kafka:spring-kafka'
-
-	// 메일
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// jwt
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+	// Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
-	implementation 'com.google.guava:guava:32.1.2-jre'
+	// Database & ORM
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+//    runtimeOnly 'io.asyncer:r2dbc-mysql'
 
-	// querydsl
+	// OAuth2
+//    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+//    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+	// QueryDSL
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
 	implementation 'com.querydsl:querydsl-core'
 	implementation 'com.querydsl:querydsl-collections'
@@ -69,12 +54,37 @@ dependencies {
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 
-	// cache
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	// Messaging
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	// Security & JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+	// Cache
 	implementation 'com.github.ben-manes.caffeine:caffeine'
+
+	// Utilities
+	implementation 'com.google.guava:guava:32.1.2-jre'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+	// Documentation
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+	// Development
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-// QueryDSL Q클래스 생성 위치 지정
+// QueryDSL Configuration
 def querydslDir = "src/main/generated"
 
 sourceSets {

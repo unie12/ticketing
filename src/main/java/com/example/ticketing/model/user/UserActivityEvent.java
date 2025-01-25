@@ -1,24 +1,35 @@
 package com.example.ticketing.model.user;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Getter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserActivityEvent {
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.WRAPPER_OBJECT,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = SearchActivityEvent.class, name = "search"),
+        @JsonSubTypes.Type(value = StoreViewActivityEvent.class, name = "store_view"),
+        @JsonSubTypes.Type(value = ReviewActivityEvent.class, name = "review")
+})
+public abstract class UserActivityEvent {
     private UserActivity eventType;
     private Long userId;
     private String storeId;
-    private Long reviewId;
     private LocalDateTime timestamp;
-    private Map<String, Object> metadata;
+    //    private Long reviewId;
+//    private Map<String, Object> metadata;
 
 //    @JsonCreator
 //    public UserActivityEvent(

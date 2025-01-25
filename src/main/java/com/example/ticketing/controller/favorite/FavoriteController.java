@@ -27,7 +27,7 @@ public class FavoriteController {
             @RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         FavoriteDTO result = favoriteService.toggleFavorite(storeId, userId);
-        activityLogService.logFavoriteToggle(storeId, userId, result.isFavorite());
+//        activityLogService.logFavoriteToggle(storeId, userId, result.isFavorite());
 
         return ResponseEntity.ok(favoriteService.toggleFavorite(storeId, userId));
     }
