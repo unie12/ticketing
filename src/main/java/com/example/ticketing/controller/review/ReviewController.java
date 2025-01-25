@@ -40,7 +40,7 @@ public class ReviewController {
             @RequestHeader("Authorization") String token) throws IOException {
         Long userId = getUserIdFromToken(token);
         ReviewResponse reviewResponse = reviewService.writeReview(reviewRequest, images, userId, storeId);
-        activityLogService.logReviewCreate(reviewResponse.getId());
+        activityLogService.logReview(reviewResponse.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(reviewResponse);

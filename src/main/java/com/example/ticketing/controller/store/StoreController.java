@@ -5,6 +5,7 @@ import com.example.ticketing.model.store.StoreResponseDTO;
 import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.store.StoreService;
 import com.example.ticketing.service.user.UserActivityLogService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,18 +29,23 @@ public class StoreController {
     ) {
         Long userId = getUserIdFromToken(token);
         List<StoreResponseDTO> stores = storeService.searchNearByRestaurants(keyword, latitude, longitude, userId);
+
+        activityLogService.logSearch(keyword, userId, stores.get(0).getId()); // id 수정
         return ResponseEntity.ok(stores);
     }
 
     @GetMapping("/{storeId}")
     public ResponseEntity<StoreResponseDTO> getStoreDetail(
             @PathVariable String storeId,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+            @RequestHeader(value = "Authorization", required = false) String token,
+            HttpServletRequest request) {
         Long userId = getUserIdFromToken(token);
-        if (userId != null) {
+        StoreResponseDTO storeDTO = storeService.getOrFetchingStore(storeId, userId);
+
+        String requestURI = request.getRequestURI();
+        if (!requestURI.contains("/review/")) {
             activityLogService.logStoreView(storeId, userId);
         }
-        StoreResponseDTO storeDTO = storeService.getOrFetchingStore(storeId, userId);
 //        StoreDTO storeDTO = storeService.getOrFetchingStore(storeId);
         return ResponseEntity.ok(storeDTO);
     }

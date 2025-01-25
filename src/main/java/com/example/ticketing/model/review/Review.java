@@ -38,6 +38,8 @@ public class Review {
 
     @Column(nullable = false)
     private int heartCount = 0;
+    
+    // 가격, 웨이팅 여부
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
