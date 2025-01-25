@@ -1,6 +1,15 @@
 package com.example.ticketing.config;
 
+import com.example.ticketing.model.user.ReviewActivityEvent;
+import com.example.ticketing.model.user.SearchActivityEvent;
+import com.example.ticketing.model.user.StoreViewActivityEvent;
 import com.example.ticketing.model.user.UserActivityEvent;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.TypeNameIdResolver;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -35,6 +44,20 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
+    @Bean
+    public ObjectMapper kafkaObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        // 다형성 처리 비활성화
+        mapper.deactivateDefaultTyping();
+        return mapper;
+    }
+
+
     /**
      * 고려해야할 사항
      * 1. 컨슈머 리밸런싱 전략 설정 + heartbeat, max_poll 등
@@ -43,60 +66,124 @@ public class KafkaConfig {
      * 4. 토픽 설정 -> cleanup_policy, retention_ms, segment_bytes, segment_ms 등
      * 5. 모니터링 및 메트릭스 추가
      * 6. 메시지 전송 신뢰성
+     * 7. 파티셔닝 전략 (사용자 id 기반.. ++)
      */
 
     /**
      * producer 설정
      */
     @Bean
-    public ProducerFactory<String, UserActivityEvent> producerFactory() {
+    public <T extends UserActivityEvent> ProducerFactory<String, T> producerFactory() {
+        JsonSerializer<T> serializer = new JsonSerializer<>(kafkaObjectMapper());
+        serializer.setAddTypeInfo(true);
+
+        return new DefaultKafkaProducerFactory<>(
+                getDefaultProducerConfig(),
+                new StringSerializer(),
+                serializer
+        );
+    }
+
+
+    private Map<String, Object> getDefaultProducerConfig() {
         Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers); // kafka 브로커 주소 -> localhost:9092
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class); // 메시지 키의 직렬화 방식 -> String
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class); // 메시지 값의 직렬화 방식 -> JSON
-        config.put(ProducerConfig.ACKS_CONFIG, "all"); // replica가 메시지 제대로 수신했는지 acks=0, 1, all
-        config.put(ProducerConfig.RETRIES_CONFIG, 3); // 전송 실패 재시도 횟수
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1); // 순서 보장을 위해
 
-        // 성능 최적화 설정
-        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384); // 배치로 전송할 메시지 크기
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 1); // 배치 전송 대기 시간
-        config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy"); // 메시지 압축 방식 -> 네트워크 대역폭 절약
-        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432); // 프로듀서 버퍼 메모리
+//        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
 
-        return new DefaultKafkaProducerFactory<>(config);
+//        config.put(JsonSerializer.TYPE_MAPPINGS,
+//                "store_view:com.example.ticketing.model.user.StoreViewActivityEvent," +
+//                        "search:com.example.ticketing.model.user.SearchActivityEvent," +
+//                        "review:com.example.ticketing.model.user.ReviewActivityEvent");
+        return config;
     }
 
     /**
      * consumer 설정
      */
     @Bean
-    public ConsumerFactory<String, UserActivityEvent> consumerFactory() {
+    public <T extends UserActivityEvent> ConsumerFactory<String, T> consumerFactory(Class<T> eventType) {
+        Map<String, Object> props = getDefaultConsumerConfig();
+        JsonDeserializer<T> deserializer = new JsonDeserializer<>(eventType, kafkaObjectMapper());
+        deserializer.addTrustedPackages("*");
+
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                deserializer
+        );
+    }
+
+
+//    @Bean
+//    public ConsumerFactory<String, SearchActivityEvent> searchConsumerFactory() {
+//        Map<String, Object> config = getDefaultConsumerConfig();
+//        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.ticketing.model.user.SearchActivityEvent");
+//
+//        return new DefaultKafkaConsumerFactory<>(
+//                 config,
+//                new StringDeserializer(),
+//                new JsonDeserializer<>(SearchActivityEvent.class)
+//        );
+//    }
+//
+//    @Bean
+//    public ConsumerFactory<String, StoreViewActivityEvent> storeViewConsumerFactory() {
+//        Map<String, Object> config = getDefaultConsumerConfig();
+//        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.ticketing.model.user.StoreViewActivityEvent");
+//
+//        return new DefaultKafkaConsumerFactory<>(
+//                config,
+//                new StringDeserializer(),
+//                new JsonDeserializer<>(StoreViewActivityEvent.class)
+//        );
+//    }
+//
+//    @Bean
+//    public ConsumerFactory<String, ReviewActivityEvent> reviewConsumerFactory() {
+//        Map<String, Object> config = getDefaultConsumerConfig();
+//        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.ticketing.model.user.ReviewActivityEvent");
+//
+//        return new DefaultKafkaConsumerFactory<>(
+//                config,
+//                new StringDeserializer(),
+//                new JsonDeserializer<>(ReviewActivityEvent.class)
+//        );
+//    }
+
+    private Map<String, Object> getDefaultConsumerConfig() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "analytics-group"); // 컨슈머 그룹 식별자
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // 처음부터 메시지 소비
-
-        // 컨슈머 동작 최적화 설정
-        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500); // 한 번에 가져올 최대 레코드 수
-        config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // poll 간격
-        config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3000); // heartbeat 전송 간격
-        config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 45000); // 세션 타임아웃
-
-        // 리밸런싱 전략 설정 -> RoundRobinAssignor 전략
-        // 파티션을 컨슈머들에게 순차적으로 할당
-        // 추가 고려 전략 (RangeAssignor, StickyAssignor, CooperativeStickyAssignor)
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "analytics-group");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
+        config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);
+        config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3000);
+        config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 45000);
         config.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG,
                 Collections.singletonList(RoundRobinAssignor.class));
 
-        // UserActivityEvent 객체로 역직렬화
-        JsonDeserializer<UserActivityEvent> jsonDeserializer = new JsonDeserializer<>(UserActivityEvent.class);
-        jsonDeserializer.addTrustedPackages("*");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        config.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
 
-        return new DefaultKafkaConsumerFactory<>(
-                config,
-                new StringDeserializer(),
-                jsonDeserializer
-        );
+//        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+
+//        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
+//        config.put(JsonDeserializer.TYPE_MAPPINGS,
+//                "store_view:com.example.ticketing.model.user.StoreViewActivityEvent," +
+//                        "search:com.example.ticketing.model.user.SearchActivityEvent," +
+//                        "review:com.example.ticketing.model.user.ReviewActivityEvent");
+        return config;
     }
 
     /**
@@ -105,18 +192,42 @@ public class KafkaConfig {
      * 메시지 리스너의 동시 처리 설정
      */
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, UserActivityEvent> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, UserActivityEvent> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, SearchActivityEvent> searchListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, SearchActivityEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-
-        // 동시성 설정
+        factory.setConsumerFactory(consumerFactory(SearchActivityEvent.class));
         factory.setConcurrency(3);
         factory.setBatchListener(true);
-
-        // 에러 핸들링
         factory.setCommonErrorHandler(new DefaultErrorHandler(
-                new DeadLetterPublishingRecoverer(kafkaTemplate()),
+                new DeadLetterPublishingRecoverer(searchKafkaTemplate()),
+                new FixedBackOff(1000L, 2)
+        ));
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, StoreViewActivityEvent> storeViewListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, StoreViewActivityEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory(StoreViewActivityEvent.class));
+        factory.setConcurrency(1);
+        factory.setBatchListener(true);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new DeadLetterPublishingRecoverer(storeViewKafkaTemplate()),
+                new FixedBackOff(1000L, 2)
+        ));
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, ReviewActivityEvent> reviewListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, ReviewActivityEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory(ReviewActivityEvent.class));
+        factory.setConcurrency(3);
+        factory.setBatchListener(true);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new DeadLetterPublishingRecoverer(reviewKafkaTemplate()),
                 new FixedBackOff(1000L, 2)
         ));
         return factory;
@@ -127,24 +238,46 @@ public class KafkaConfig {
      * 메시지 프로듀서의 편리한 사용을 위한 템플릿
      * 높은 수준의 추상화 제공
      */
+
     @Bean
-    public KafkaTemplate<String, UserActivityEvent> kafkaTemplate() {
-        KafkaTemplate<String, UserActivityEvent> template = new KafkaTemplate<>(producerFactory());
-        template.setDefaultTopic("user-activities");
+    public KafkaTemplate<String, SearchActivityEvent> searchKafkaTemplate() {
+        return createKafkaTemplate("search-events");
+    }
 
-        // 프로듀서 에러 핸들링
-        template.setProducerListener(new ProducerListener<String, UserActivityEvent>() {
-            @Override
-            public void onError(ProducerRecord<String, UserActivityEvent> record,
-                                RecordMetadata metadata,
-                                Exception exception) {
-                log.error("Error sending message: {}", record, exception);
-            }
-        });
+    @Bean
+    public KafkaTemplate<String, StoreViewActivityEvent> storeViewKafkaTemplate() {
+        return createKafkaTemplate("store-views");
+    }
 
+    @Bean
+    public KafkaTemplate<String, ReviewActivityEvent> reviewKafkaTemplate() {
+        return createKafkaTemplate("review-events");
+    }
+
+    private <T extends UserActivityEvent> KafkaTemplate<String, T> createKafkaTemplate(String defaultTopic) {
+        KafkaTemplate<String, T> template = new KafkaTemplate<>(producerFactory());
+        template.setDefaultTopic(defaultTopic);
+        template.setObservationEnabled(true);
         return template;
     }
 
+    private <T> ProducerListener<String, T> getProducerListener() {
+        return new ProducerListener<>() {
+            @Override
+            public void onSuccess(ProducerRecord<String, T> producerRecord, RecordMetadata metadata) {
+                log.debug("Message sent Successfully: topic={}, partition={}, offset={}",
+                        metadata.topic(), metadata.partition(), metadata.offset());
+            }
+
+            @Override
+            public void onError(ProducerRecord<String, T> record,
+                                RecordMetadata metadata,
+                                Exception exception) {
+                log.error("Failed to send message: topic={}, value={}",
+                        record.topic(), record.value(), exception);
+            }
+        };
+    }
     /**
      * admin 설정
      * kafka 관리 작업을 위한 admin 클라이언트
@@ -165,16 +298,46 @@ public class KafkaConfig {
      * 3. 복제 팩터: 1 (개발 환경용)
      */
     @Bean
-    public NewTopic userActivitiesTopic() {
-        Map<String, String> configs = new HashMap<>();
-        configs.put(TopicConfig.CLEANUP_POLICY_CONFIG, "delete"); // 오래된 메시지 삭제
-        configs.put(TopicConfig.RETENTION_MS_CONFIG, "604800000"); // 메시지 보관 기간 7일
-        configs.put(TopicConfig.SEGMENT_BYTES_CONFIG, "1073741824"); // 1GB
-        configs.put(TopicConfig.SEGMENT_MS_CONFIG, "604800000"); // 7일
+    public NewTopic searchEventsTopic() {
+        return TopicBuilder.name("search-events")
+                .partitions(6)
+                .configs(Map.of(
+                        TopicConfig.RETENTION_MS_CONFIG, "86400000",
+                        TopicConfig.CLEANUP_POLICY_CONFIG, "delete"
+                ))
+                .build();
+    }
 
-        return TopicBuilder.name("user-activities")
+    @Bean
+    public NewTopic storeViewEventsTopic() {
+        return TopicBuilder.name("store-views")
+                .partitions(6)
+                .configs(Map.of(
+                        TopicConfig.RETENTION_MS_CONFIG, "86400000",
+                        TopicConfig.CLEANUP_POLICY_CONFIG, "delete"
+                ))
+                .build();
+    }
+
+    @Bean
+    public NewTopic reviewEventsTopic() {
+        return TopicBuilder.name("review-events")
                 .partitions(3)
-                .replicas(1)
+                .configs(Map.of(
+                        TopicConfig.RETENTION_MS_CONFIG, "604800000",
+                        TopicConfig.CLEANUP_POLICY_CONFIG, "delete"
+                ))
+                .build();
+    }
+
+    @Bean
+    public NewTopic interactionEventsTopic() {
+        return TopicBuilder.name("interaction-events")
+                .partitions(3)
+                .configs(Map.of(
+                        TopicConfig.RETENTION_MS_CONFIG, "604800000",
+                        TopicConfig.CLEANUP_POLICY_CONFIG, "delete"
+                ))
                 .build();
     }
 }
