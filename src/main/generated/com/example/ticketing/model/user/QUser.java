@@ -34,9 +34,13 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath imgUrl = createString("imgUrl");
 
+    public final ListPath<com.example.ticketing.model.recruit.Participant, com.example.ticketing.model.recruit.QParticipant> participants = this.<com.example.ticketing.model.recruit.Participant, com.example.ticketing.model.recruit.QParticipant>createList("participants", com.example.ticketing.model.recruit.Participant.class, com.example.ticketing.model.recruit.QParticipant.class, PathInits.DIRECT2);
+
     public final StringPath password = createString("password");
 
     public final EnumPath<com.example.ticketing.model.auth.AuthProvider> provider = createEnum("provider", com.example.ticketing.model.auth.AuthProvider.class);
+
+    public final ListPath<com.example.ticketing.model.recruit.RecruitmentPost, com.example.ticketing.model.recruit.QRecruitmentPost> recruitmentPosts = this.<com.example.ticketing.model.recruit.RecruitmentPost, com.example.ticketing.model.recruit.QRecruitmentPost>createList("recruitmentPosts", com.example.ticketing.model.recruit.RecruitmentPost.class, com.example.ticketing.model.recruit.QRecruitmentPost.class, PathInits.DIRECT2);
 
     public final ListPath<com.example.ticketing.model.event.Reservation, com.example.ticketing.model.event.QReservation> reservations = this.<com.example.ticketing.model.event.Reservation, com.example.ticketing.model.event.QReservation>createList("reservations", com.example.ticketing.model.event.Reservation.class, com.example.ticketing.model.event.QReservation.class, PathInits.DIRECT2);
 

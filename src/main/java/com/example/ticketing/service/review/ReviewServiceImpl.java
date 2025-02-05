@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReviewServiceImpl implements ReviewService {
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
@@ -72,11 +73,12 @@ public class ReviewServiceImpl implements ReviewService {
             }
         }
 
-        Review updatedReview = reviewRepository.save(review);
-        return ReviewResponse.from(updatedReview, user.hasLikedReview(review));
+//        Review updatedReview = reviewRepository.save(review);
+        return ReviewResponse.from(review, user.hasLikedReview(review));
     }
 
     @Override
+    @Transactional
     public ReviewResponse deleteReview(Long reviewId, Long userId) {
         User user = userService.findUserById(userId);
         Review review = findReviewAndValidateUser(reviewId, userId);

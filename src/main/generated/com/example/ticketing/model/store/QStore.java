@@ -40,6 +40,8 @@ public class QStore extends EntityPathBase<Store> {
 
     public final StringPath placeUrl = createString("placeUrl");
 
+    public final ListPath<com.example.ticketing.model.recruit.RecruitmentPost, com.example.ticketing.model.recruit.QRecruitmentPost> recruitmentPosts = this.<com.example.ticketing.model.recruit.RecruitmentPost, com.example.ticketing.model.recruit.QRecruitmentPost>createList("recruitmentPosts", com.example.ticketing.model.recruit.RecruitmentPost.class, com.example.ticketing.model.recruit.QRecruitmentPost.class, PathInits.DIRECT2);
+
     public final NumberPath<Integer> reviewCount = createNumber("reviewCount", Integer.class);
 
     public final StringPath roadAddressName = createString("roadAddressName");
