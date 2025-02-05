@@ -130,5 +130,25 @@ public class RecruitmentController {
         return ResponseEntity.ok(recruitmentService.getJoinedRecruitments(userId, pageRequest));
     }
 
+    @GetMapping("/urgent")
+    @Operation(summary = "마감 임박 구인글", description = "24시간 이내 마감되는 구인글을 조회합니다.")
+    public ResponseEntity<Page<RecruitmentResponseDTO>> getUrgentRecruitments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(recruitmentService.getUrgentRecruitments(pageRequest));
+    }
+
+    @GetMapping("/almost-full")
+    @Operation(summary = "마감 임박 구인글", description = "인원이 거의 찬 구인글을 조회합니다.")
+    public ResponseEntity<Page<RecruitmentResponseDTO>> getAlmostFullRecruitments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(recruitmentService.getAlmostFullRecruitments(pageRequest));
+    }
+
 
 }

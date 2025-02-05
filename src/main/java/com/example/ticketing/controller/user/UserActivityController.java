@@ -2,18 +2,21 @@ package com.example.ticketing.controller.user;
 
 import com.example.ticketing.model.favorite.FavoriteDTO;
 import com.example.ticketing.model.heart.HeartDTO;
+import com.example.ticketing.model.recruit.RecruitmentResponseDTO;
 import com.example.ticketing.model.review.ReviewResponse;
 import com.example.ticketing.model.user.UserActivitySummaryDTO;
 import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.favorite.FavoriteService;
 import com.example.ticketing.service.heart.HeartService;
+import com.example.ticketing.service.recruit.RecruitmentService;
 import com.example.ticketing.service.review.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,6 +26,7 @@ import java.util.List;
 public class UserActivityController {
     private final ReviewService reviewService;
     private final FavoriteService favoriteService;
+    private final RecruitmentService recruitmentService;
     private final HeartService heartService;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -56,6 +60,30 @@ public class UserActivityController {
     public ResponseEntity<List<HeartDTO>> getUserHearts(@RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         return ResponseEntity.ok(heartService.getMyHearts(userId));
+    }
+
+    @GetMapping("/recruitment/my")
+    @Operation(summary = "내 구인글 목록", description = "자신이 작성한 구인글 목록을 조회합니다.")
+    public ResponseEntity<Page<RecruitmentResponseDTO>> getMyRecruitments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestHeader("Authorization") String token
+    ) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok(recruitmentService.getMyRecruitments(userId, pageRequest));
+    }
+
+    @GetMapping("/recruitment/joined")
+    @Operation(summary = "참여 구인글 목록", description = "자신이 참여한 구인글 목록을 조회합니다.")
+    public ResponseEntity<Page<RecruitmentResponseDTO>> getJoinedRecruitments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestHeader("Authorization") String token
+    ) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok(recruitmentService.getJoinedRecruitments(userId, pageRequest));
     }
 
 }

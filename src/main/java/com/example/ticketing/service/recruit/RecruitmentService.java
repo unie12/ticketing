@@ -23,4 +23,9 @@ public interface RecruitmentService {
     Page<RecruitmentResponseDTO> getMyRecruitments(Long userId, PageRequest pageRequest);
 
     Page<RecruitmentResponseDTO> getJoinedRecruitments(Long userId, PageRequest pageRequest);
+
+    Page<RecruitmentResponseDTO> getUrgentRecruitments(PageRequest pageRequest);
+
+    Page<RecruitmentResponseDTO> getAlmostFullRecruitments(PageRequest pageRequest);
 }
+

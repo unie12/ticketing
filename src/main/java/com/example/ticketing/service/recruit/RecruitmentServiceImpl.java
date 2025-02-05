@@ -96,6 +96,10 @@ public class RecruitmentServiceImpl implements RecruitmentService{
         RecruitmentPost recruitmentPost = findRecruitmentPostByRecruitmentPostId(recruitmentId);
         User user = userService.findUserById(userId);
 
+        if (user.hasJoinedRecruitment(recruitmentPost)) {
+            throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_ALREADY_JOINED);
+        }
+
         if (recruitmentPost.isAuthor(user)) {
             throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_AUTHOR_CANNOT_JOIN);
         }
@@ -142,6 +146,18 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     @Override
     public Page<RecruitmentResponseDTO> getJoinedRecruitments(Long userId, PageRequest pageRequest) {
         return recruitmentRepository.findByParticipantUserId(userId, pageRequest)
+                .map(RecruitmentResponseDTO::from);
+    }
+
+    @Override
+    public Page<RecruitmentResponseDTO> getUrgentRecruitments(PageRequest pageRequest) {
+        return recruitmentRepository.findUrgentRecruitments(pageRequest)
+                .map(RecruitmentResponseDTO::from);
+    }
+
+    @Override
+    public Page<RecruitmentResponseDTO> getAlmostFullRecruitments(PageRequest pageRequest) {
+        return recruitmentRepository.findAlmostFullRecruitments(pageRequest)
                 .map(RecruitmentResponseDTO::from);
     }
 
