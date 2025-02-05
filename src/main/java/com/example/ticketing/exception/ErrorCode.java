@@ -85,8 +85,29 @@ public enum ErrorCode {
     REVIEW_MODIFICATION_TIME_EXPIRED(HttpStatus.BAD_REQUEST, "리뷰 수정 가능 시간이 만료되었습니다."),
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가게를 찾을 수 없습니다."),
     TOO_MANY_IMAGES(HttpStatus.BAD_REQUEST, "이미지는 최대 5장까지입니다." ),
-    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 용량이 너무 큽니다 (최대 5MB)"), 
-    INVALID_IMAGE_TYPE(HttpStatus.BAD_GATEWAY, "잘못된 이미지 파일입니다");
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 용량이 너무 큽니다 (최대 5MB)"),
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_GATEWAY, "잘못된 이미지 파일입니다"),
+
+    // 밥친구 구인글 관련
+    RECRUITMENTPOST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 구인글을 찾을 수 없습니다."),
+    RECRUITMENTPOST_NOT_AUTHOR(HttpStatus.FORBIDDEN, "해당 구인글의 작성자가 아닙니다."),
+    RECRUITMENTPOST_ALREADY_CLOSED(HttpStatus.BAD_REQUEST, "이미 마감된 구인글입니다."),
+    RECRUITMENTPOST_ALREADY_FULL(HttpStatus.BAD_REQUEST, "이미 모집이 완료된 구인글입니다."),
+    RECRUITMENTPOST_INVALID_MEETING_TIME(HttpStatus.BAD_REQUEST, "약속 시간은 현재 시간 이후여야 합니다."),
+    RECRUITMENTPOST_INVALID_MAX_PARTICIPANTS(HttpStatus.BAD_REQUEST, "최대 참여 인원은 현재 참여자 수보다 작을 수 없습니다."),
+
+    // 참여 관련
+    RECRUITMENTPOST_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "이미 참여한 구인글입니다."),
+    RECRUITMENTPOST_JOIN_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "참여할 수 없는 구인글입니다."),
+    RECRUITMENTPOST_AUTHOR_CANNOT_JOIN(HttpStatus.BAD_REQUEST, "작성자는 참여할 수 없습니다."),
+
+    // 삭제/수정 관련
+    RECRUITMENTPOST_CANNOT_DELETE(HttpStatus.BAD_REQUEST, "삭제할 수 없는 구인글입니다."),
+    RECRUITMENTPOST_CANNOT_UPDATE(HttpStatus.BAD_REQUEST, "수정할 수 없는 구인글입니다."),
+
+    // 마감 관련
+    RECRUITMENTPOST_CANNOT_CLOSE(HttpStatus.BAD_REQUEST, "마감할 수 없는 구인글입니다."),
+    RECRUITMENTPOST_MEETING_TIME_PASSED(HttpStatus.BAD_REQUEST, "이미 약속 시간이 지난 구인글입니다.");
 
     private final HttpStatus status;
     private final String message;
