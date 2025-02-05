@@ -99,12 +99,6 @@ public class KafkaConfig {
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1); // 순서 보장을 위해
 
-//        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
-
-//        config.put(JsonSerializer.TYPE_MAPPINGS,
-//                "store_view:com.example.ticketing.model.user.StoreViewActivityEvent," +
-//                        "search:com.example.ticketing.model.user.SearchActivityEvent," +
-//                        "review:com.example.ticketing.model.user.ReviewActivityEvent");
         return config;
     }
 
@@ -124,43 +118,6 @@ public class KafkaConfig {
         );
     }
 
-
-//    @Bean
-//    public ConsumerFactory<String, SearchActivityEvent> searchConsumerFactory() {
-//        Map<String, Object> config = getDefaultConsumerConfig();
-//        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.ticketing.model.user.SearchActivityEvent");
-//
-//        return new DefaultKafkaConsumerFactory<>(
-//                 config,
-//                new StringDeserializer(),
-//                new JsonDeserializer<>(SearchActivityEvent.class)
-//        );
-//    }
-//
-//    @Bean
-//    public ConsumerFactory<String, StoreViewActivityEvent> storeViewConsumerFactory() {
-//        Map<String, Object> config = getDefaultConsumerConfig();
-//        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.ticketing.model.user.StoreViewActivityEvent");
-//
-//        return new DefaultKafkaConsumerFactory<>(
-//                config,
-//                new StringDeserializer(),
-//                new JsonDeserializer<>(StoreViewActivityEvent.class)
-//        );
-//    }
-//
-//    @Bean
-//    public ConsumerFactory<String, ReviewActivityEvent> reviewConsumerFactory() {
-//        Map<String, Object> config = getDefaultConsumerConfig();
-//        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.ticketing.model.user.ReviewActivityEvent");
-//
-//        return new DefaultKafkaConsumerFactory<>(
-//                config,
-//                new StringDeserializer(),
-//                new JsonDeserializer<>(ReviewActivityEvent.class)
-//        );
-//    }
-
     private Map<String, Object> getDefaultConsumerConfig() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -176,13 +133,6 @@ public class KafkaConfig {
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         config.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
 
-//        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-
-//        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
-//        config.put(JsonDeserializer.TYPE_MAPPINGS,
-//                "store_view:com.example.ticketing.model.user.StoreViewActivityEvent," +
-//                        "search:com.example.ticketing.model.user.SearchActivityEvent," +
-//                        "review:com.example.ticketing.model.user.ReviewActivityEvent");
         return config;
     }
 
