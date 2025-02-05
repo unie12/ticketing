@@ -4,6 +4,8 @@ import com.example.ticketing.model.auth.AuthProvider;
 import com.example.ticketing.model.event.Reservation;
 import com.example.ticketing.model.favorite.Favorite;
 import com.example.ticketing.model.heart.Heart;
+import com.example.ticketing.model.recruit.Participant;
+import com.example.ticketing.model.recruit.RecruitmentPost;
 import com.example.ticketing.model.review.Review;
 import jakarta.persistence.*;
 import lombok.*;
@@ -68,6 +70,12 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Heart> hearts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = false) // 사용자 삭제되더라도 구인글 데이터는 남도록?
+    private List<RecruitmentPost> recruitmentPosts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<Participant> participants = new ArrayList<>();
+
     @Builder
     public User(String username, String email, String password) {
         this.username = username;
@@ -89,6 +97,11 @@ public class User {
     public boolean hasLikedReview(Review review) {
         return this.hearts.stream()
                 .anyMatch(heart -> heart.getReview().equals(review));
+    }
+
+    public boolean hasJoinedRecruitment(RecruitmentPost post) {
+        return participants.stream()
+                .anyMatch(p -> p.getRecruitmentPost().equals(post));
     }
 
 }
