@@ -18,7 +18,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"reservations", "userCoupons", "favorites", "hearts"})
+@ToString(exclude = {"reservations", "userCoupons", "favorites", "hearts", "recruitmentPosts", "participants"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
