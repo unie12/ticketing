@@ -23,7 +23,6 @@ public class RecruitmentController {
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
-     * 최근 구인글 조회 + 마감 인원(시간) 얼마 안남은 구인글 조회
      * 구인글 탈퇴
      */
 
@@ -44,11 +43,11 @@ public class RecruitmentController {
     public ResponseEntity<Page<RecruitmentResponseDTO>> getRecruitments(
             @PathVariable String storeId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false)RecruitmentStatus status
+            @RequestParam(defaultValue = "10") int size
+//            @RequestParam(required = false) RecruitmentStatus status
     ) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return ResponseEntity.ok(recruitmentService.getRecruitments(storeId, status, pageRequest));
+        return ResponseEntity.ok(recruitmentService.getRecruitments(storeId, pageRequest));
     }
 
     @GetMapping("/{recruitmentId}")

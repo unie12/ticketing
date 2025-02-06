@@ -66,6 +66,7 @@ public class RecruitmentPost {
         this.content = content;
         this.maxParticipants = maxParticipants;
         this.meetingTime = meetingTime;
+        this.currentParticipants = 0;
     }
 
     @PrePersist
@@ -73,7 +74,6 @@ public class RecruitmentPost {
         createdAt = LocalDateTime.now();
         lastModifiedAt = LocalDateTime.now();
         status = RecruitmentStatus.OPEN;
-        currentParticipants = 0;
     }
 
     public boolean isFull() {
@@ -120,5 +120,9 @@ public class RecruitmentPost {
         if (request.getMeetingTime().isBefore(LocalDateTime.now())) {
             throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_INVALID_MEETING_TIME);
         }
+    }
+    public void addParticipant(Participant participant) {
+        this.participants.add(participant);
+        incrementParticipants();
     }
 }
