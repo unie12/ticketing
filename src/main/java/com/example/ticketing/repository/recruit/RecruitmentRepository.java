@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RecruitmentRepository extends JpaRepository<RecruitmentPost, Long>, RecruitmentRepositoryCustom {
-    Page<RecruitmentPost> findByStoreIdAndStatus(String storeId, RecruitmentStatus status, Pageable pageable);
+    Page<RecruitmentPost> findByStoreId(String storeId, Pageable pageable);
 
     Page<RecruitmentPost> findByAuthorId(Long userId, Pageable pageable);
 

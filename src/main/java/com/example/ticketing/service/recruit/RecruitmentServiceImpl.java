@@ -39,9 +39,12 @@ public class RecruitmentServiceImpl implements RecruitmentService{
                 .maxParticipants(request.getMaxParticipants())
                 .meetingTime(request.getMeetingTime())
                 .build();
-        recruitmentPost.incrementParticipants();
+        Participant participant = new Participant(user, recruitmentPost);
+        recruitmentPost.addParticipant(participant);
 
-        return RecruitmentResponseDTO.from(recruitmentRepository.save(recruitmentPost));
+        RecruitmentPost save = recruitmentRepository.save(recruitmentPost);
+
+        return RecruitmentResponseDTO.from(save);
     }
 
     @Override
@@ -109,7 +112,9 @@ public class RecruitmentServiceImpl implements RecruitmentService{
         }
 
         Participant participant = new Participant(user, recruitmentPost);
-        recruitmentPost.incrementParticipants();
+        recruitmentPost.addParticipant(participant);
+//        recruitmentRepository.save(recruitmentPost);
+//        recruitmentPost.incrementParticipants();
 
         return ParticipantResponseDTO.from(participant);
     }
@@ -132,8 +137,8 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     }
 
     @Override
-    public Page<RecruitmentResponseDTO> getRecruitments(String storeId, RecruitmentStatus status, PageRequest pageRequest) {
-        return recruitmentRepository.findByStoreIdAndStatus(storeId, status, pageRequest)
+    public Page<RecruitmentResponseDTO> getRecruitments(String storeId, PageRequest pageRequest) {
+        return recruitmentRepository.findByStoreId(storeId, pageRequest)
                 .map(RecruitmentResponseDTO::from);
     }
 
