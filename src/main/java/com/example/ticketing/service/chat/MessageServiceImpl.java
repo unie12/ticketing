@@ -24,10 +24,10 @@ public class MessageServiceImpl implements MessageService {
     private final ChatRoomService chatRoomService;
     private final UserService userService;
 
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public void sendMessage(Long roomId, Long senderId, String content) {
+    public ChatMessageResponseDTO sendMessage(Long roomId, Long senderId, String content) {
         ChatRoom chatRoom = chatRoomService.findChatRoomById(roomId);
         User sender = userService.findUserById(senderId);
 
@@ -40,10 +40,12 @@ public class MessageServiceImpl implements MessageService {
 
         chatMessageRepository.save(message);
 
-        messagingTemplate.convertAndSend(
-                "/topic/chat/" + roomId,
-                new ChatMessageResponseDTO(sender.getUsername(), content, LocalDateTime.now())
-        );
+        return ChatMessageResponseDTO.from(message);
+
+//        messagingTemplate.convertAndSend(
+//                "/topic/chat/" + roomId,
+//                new ChatMessageResponseDTO(sender.getUsername(), content, LocalDateTime.now())
+//        );
     }
 
     @Override

@@ -8,7 +8,7 @@ import com.example.ticketing.model.user.User;
 import java.util.List;
 
 public interface MessageService {
-    void sendMessage(Long roomId, Long senderId, String content);
+    ChatMessageResponseDTO sendMessage(Long roomId, Long senderId, String content);
 
     public List<ChatMessageResponseDTO> getMessages(Long roomId, int page, int size);
 }
