@@ -129,6 +129,9 @@ public class RecruitmentController {
         return ResponseEntity.ok(recruitmentService.getJoinedRecruitments(userId, pageRequest));
     }
 
+    /**
+     * path 재설정 -> 전체에 대한 값을 불러오니까 굳이 여기서 할 필요 x
+     */
     @GetMapping("/urgent")
     @Operation(summary = "마감 임박 구인글", description = "24시간 이내 마감되는 구인글을 조회합니다.")
     public ResponseEntity<Page<RecruitmentResponseDTO>> getUrgentRecruitments(
