@@ -20,6 +20,8 @@ public class QUser extends EntityPathBase<User> {
 
     public static final QUser user = new QUser("user");
 
+    public final ListPath<com.example.ticketing.model.chat.ChatRoomParticipant, com.example.ticketing.model.chat.QChatRoomParticipant> chatRoomParticipants = this.<com.example.ticketing.model.chat.ChatRoomParticipant, com.example.ticketing.model.chat.QChatRoomParticipant>createList("chatRoomParticipants", com.example.ticketing.model.chat.ChatRoomParticipant.class, com.example.ticketing.model.chat.QChatRoomParticipant.class, PathInits.DIRECT2);
+
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
     public final StringPath email = createString("email");
@@ -33,6 +35,8 @@ public class QUser extends EntityPathBase<User> {
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath imgUrl = createString("imgUrl");
+
+    public final ListPath<com.example.ticketing.model.chat.ChatMessage, com.example.ticketing.model.chat.QChatMessage> messages = this.<com.example.ticketing.model.chat.ChatMessage, com.example.ticketing.model.chat.QChatMessage>createList("messages", com.example.ticketing.model.chat.ChatMessage.class, com.example.ticketing.model.chat.QChatMessage.class, PathInits.DIRECT2);
 
     public final ListPath<com.example.ticketing.model.recruit.Participant, com.example.ticketing.model.recruit.QParticipant> participants = this.<com.example.ticketing.model.recruit.Participant, com.example.ticketing.model.recruit.QParticipant>createList("participants", com.example.ticketing.model.recruit.Participant.class, com.example.ticketing.model.recruit.QParticipant.class, PathInits.DIRECT2);
 
