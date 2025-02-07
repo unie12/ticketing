@@ -12,12 +12,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessageResponseDTO {
+    private Long id;
+    private Long senderId;
     private String senderName;
     private String content;
     private LocalDateTime timeStamp;
 
     public static ChatMessageResponseDTO from(ChatMessage message) {
         return new ChatMessageResponseDTO(
+                message.getId(),
+                message.getSender().getId(),
                 message.getSender().getUsername(),
                 message.getMessageContent(),
                 message.getTimestamp()
