@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(customAccessDeniedHandler())) // 권한 부족시 처리 (403)
                 .authorizeHttpRequests(auth -> auth // url 접근 권한
                         .requestMatchers(
+                                "/ws/**",
                                 "/api/auth/**",
                                 "/api/store/**",
                                 "/api/review/**",
@@ -88,7 +89,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "http://localhost:8080"
+                "http://localhost:8080",
+                "ws://localhost:8080"
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"

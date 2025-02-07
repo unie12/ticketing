@@ -1,6 +1,5 @@
 package com.example.ticketing.controller.chat;
 
-import com.example.ticketing.model.chat.ChatMessage;
 import com.example.ticketing.model.chat.ChatMessageRequest;
 import com.example.ticketing.model.chat.ChatMessageResponseDTO;
 import com.example.ticketing.security.JwtTokenProvider;
@@ -9,7 +8,9 @@ import com.example.ticketing.service.chat.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,8 +24,14 @@ public class ChatController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @MessageMapping("/{roomId}/send")
-    public void sendMessage(@DestinationVariable Long roomId, ChatMessageRequest request) {
-        messageService.sendMessage(request.getChatRoomId(), request.getSenderId(), request.getContent());
+    @SendTo("/topic/chat/{roomId}")
+    public ChatMessageResponseDTO sendMessage(
+            @DestinationVariable Long roomId,
+            ChatMessageRequest request,
+            @Header("Authorization") String token) {
+        String jwtToken = token.replace("Bearer ", "");
+        Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+        return messageService.sendMessage(roomId, userId, request.getContent());
     }
 
     @PostMapping("/{roomId}/join")
@@ -44,8 +51,11 @@ public class ChatController {
     }
 
     @GetMapping("/{roomId}/unread-count")
-    public ResponseEntity<Long> countUnreadMessages(@PathVariable Long roomId, @RequestHeader("Authorization") String token) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+    public ResponseEntity<Long> countUnreadMessages(
+            @PathVariable Long roomId,
+            @RequestHeader("Authorization") String token) {
+        String jwtToken = token.replace("Bearer ", "");
+        Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
         return ResponseEntity.ok(chatRoomService.countUnreadMessages(roomId, userId));
     }
 }
