@@ -2,9 +2,13 @@ package com.example.ticketing.service.recruit;
 
 import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.exception.RecruitmentException;
+import com.example.ticketing.model.chat.ChatRoom;
+import com.example.ticketing.model.chat.ChatRoomParticipant;
 import com.example.ticketing.model.recruit.*;
 import com.example.ticketing.model.store.Store;
 import com.example.ticketing.model.user.User;
+import com.example.ticketing.repository.chat.ChatRoomParticipantRepository;
+import com.example.ticketing.repository.chat.ChatRoomRepository;
 import com.example.ticketing.repository.recruit.RecruitmentRepository;
 import com.example.ticketing.service.store.StoreService;
 import com.example.ticketing.service.user.UserService;
@@ -24,6 +28,8 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     private final UserService userService;
 
     private final RecruitmentRepository recruitmentRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomParticipantRepository chatRoomParticipantRepository;
 
     @Override
     @Transactional
@@ -43,6 +49,15 @@ public class RecruitmentServiceImpl implements RecruitmentService{
         recruitmentPost.addParticipant(participant);
 
         RecruitmentPost save = recruitmentRepository.save(recruitmentPost);
+
+        ChatRoom chatRoom = new ChatRoom(recruitmentPost);
+        chatRoomRepository.save(chatRoom);
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                .chatRoom(chatRoom)
+                .user(user)
+                .build();
+        chatRoomParticipantRepository.save(participant1);
 
         return RecruitmentResponseDTO.from(save);
     }
@@ -90,6 +105,10 @@ public class RecruitmentServiceImpl implements RecruitmentService{
             throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_NOT_AUTHOR);
         }
 
+        ChatRoom chatRoom = recruitmentPost.getChatRoom();
+        if (chatRoom != null) {
+            chatRoomRepository.delete(chatRoom);
+        }
         recruitmentRepository.delete(recruitmentPost);
     }
 
@@ -113,8 +132,12 @@ public class RecruitmentServiceImpl implements RecruitmentService{
 
         Participant participant = new Participant(user, recruitmentPost);
         recruitmentPost.addParticipant(participant);
-//        recruitmentRepository.save(recruitmentPost);
-//        recruitmentPost.incrementParticipants();
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                .chatRoom(recruitmentPost.getChatRoom())
+                .user(user)
+                .build();
+        chatRoomParticipantRepository.save(participant1);
 
         return ParticipantResponseDTO.from(participant);
     }
