@@ -2,9 +2,13 @@ package com.example.ticketing.service.recruit;
 
 import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.exception.RecruitmentException;
+import com.example.ticketing.model.chat.ChatRoom;
+import com.example.ticketing.model.chat.ChatRoomParticipant;
 import com.example.ticketing.model.recruit.*;
 import com.example.ticketing.model.store.Store;
 import com.example.ticketing.model.user.User;
+import com.example.ticketing.repository.chat.ChatRoomParticipantRepository;
+import com.example.ticketing.repository.chat.ChatRoomRepository;
 import com.example.ticketing.repository.recruit.RecruitmentRepository;
 import com.example.ticketing.service.store.StoreService;
 import com.example.ticketing.service.user.UserService;
@@ -24,6 +28,8 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     private final UserService userService;
 
     private final RecruitmentRepository recruitmentRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomParticipantRepository chatRoomParticipantRepository;
 
     @Override
     @Transactional
@@ -39,9 +45,21 @@ public class RecruitmentServiceImpl implements RecruitmentService{
                 .maxParticipants(request.getMaxParticipants())
                 .meetingTime(request.getMeetingTime())
                 .build();
-        recruitmentPost.incrementParticipants();
+        Participant participant = new Participant(user, recruitmentPost);
+        recruitmentPost.addParticipant(participant);
 
-        return RecruitmentResponseDTO.from(recruitmentRepository.save(recruitmentPost));
+        RecruitmentPost save = recruitmentRepository.save(recruitmentPost);
+
+        ChatRoom chatRoom = new ChatRoom(recruitmentPost);
+        chatRoomRepository.save(chatRoom);
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                .chatRoom(chatRoom)
+                .user(user)
+                .build();
+        chatRoomParticipantRepository.save(participant1);
+
+        return RecruitmentResponseDTO.from(save);
     }
 
     @Override
@@ -87,6 +105,10 @@ public class RecruitmentServiceImpl implements RecruitmentService{
             throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_NOT_AUTHOR);
         }
 
+        ChatRoom chatRoom = recruitmentPost.getChatRoom();
+        if (chatRoom != null) {
+            chatRoomRepository.delete(chatRoom);
+        }
         recruitmentRepository.delete(recruitmentPost);
     }
 
@@ -95,6 +117,10 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     public ParticipantResponseDTO joinRecruitment(Long recruitmentId, Long userId) {
         RecruitmentPost recruitmentPost = findRecruitmentPostByRecruitmentPostId(recruitmentId);
         User user = userService.findUserById(userId);
+
+        if (user.hasJoinedRecruitment(recruitmentPost)) {
+            throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_ALREADY_JOINED);
+        }
 
         if (recruitmentPost.isAuthor(user)) {
             throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_AUTHOR_CANNOT_JOIN);
@@ -105,7 +131,13 @@ public class RecruitmentServiceImpl implements RecruitmentService{
         }
 
         Participant participant = new Participant(user, recruitmentPost);
-        recruitmentPost.incrementParticipants();
+        recruitmentPost.addParticipant(participant);
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                .chatRoom(recruitmentPost.getChatRoom())
+                .user(user)
+                .build();
+        chatRoomParticipantRepository.save(participant1);
 
         return ParticipantResponseDTO.from(participant);
     }
@@ -128,8 +160,8 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     }
 
     @Override
-    public Page<RecruitmentResponseDTO> getRecruitments(String storeId, RecruitmentStatus status, PageRequest pageRequest) {
-        return recruitmentRepository.findByStoreIdAndStatus(storeId, status, pageRequest)
+    public Page<RecruitmentResponseDTO> getRecruitments(String storeId, PageRequest pageRequest) {
+        return recruitmentRepository.findByStoreId(storeId, pageRequest)
                 .map(RecruitmentResponseDTO::from);
     }
 
@@ -142,6 +174,18 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     @Override
     public Page<RecruitmentResponseDTO> getJoinedRecruitments(Long userId, PageRequest pageRequest) {
         return recruitmentRepository.findByParticipantUserId(userId, pageRequest)
+                .map(RecruitmentResponseDTO::from);
+    }
+
+    @Override
+    public Page<RecruitmentResponseDTO> getUrgentRecruitments(PageRequest pageRequest) {
+        return recruitmentRepository.findUrgentRecruitments(pageRequest)
+                .map(RecruitmentResponseDTO::from);
+    }
+
+    @Override
+    public Page<RecruitmentResponseDTO> getAlmostFullRecruitments(PageRequest pageRequest) {
+        return recruitmentRepository.findAlmostFullRecruitments(pageRequest)
                 .map(RecruitmentResponseDTO::from);
     }
 

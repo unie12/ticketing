@@ -2,6 +2,7 @@ package com.example.ticketing.model.recruit;
 
 import com.example.ticketing.exception.ErrorCode;
 import com.example.ticketing.exception.RecruitmentException;
+import com.example.ticketing.model.chat.ChatRoom;
 import com.example.ticketing.model.store.Store;
 import com.example.ticketing.model.user.User;
 import jakarta.persistence.*;
@@ -22,14 +23,6 @@ public class RecruitmentPost {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    private Store store;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User author;
-
     @Column(nullable = false)
     private String title;
 
@@ -45,9 +38,6 @@ public class RecruitmentPost {
     @Column(nullable = false)
     private LocalDateTime meetingTime;
 
-    @OneToMany(mappedBy = "recruitmentPost", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participant> participants = new ArrayList<>();
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RecruitmentStatus status;
@@ -58,6 +48,23 @@ public class RecruitmentPost {
     @Column(nullable = false)
     private LocalDateTime lastModifiedAt;
 
+    /**
+     * 연관관계 매핑
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User author;
+
+    @OneToMany(mappedBy = "recruitmentPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Participant> participants = new ArrayList<>();
+
+    @OneToOne(mappedBy = "recruitmentPost", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ChatRoom chatRoom;
+
     @Builder
     public RecruitmentPost(Store store, User author, String title, String content, int maxParticipants, LocalDateTime meetingTime) {
         this.store = store;
@@ -66,6 +73,7 @@ public class RecruitmentPost {
         this.content = content;
         this.maxParticipants = maxParticipants;
         this.meetingTime = meetingTime;
+        this.currentParticipants = 0;
     }
 
     @PrePersist
@@ -73,7 +81,6 @@ public class RecruitmentPost {
         createdAt = LocalDateTime.now();
         lastModifiedAt = LocalDateTime.now();
         status = RecruitmentStatus.OPEN;
-        currentParticipants = 0;
     }
 
     public boolean isFull() {
@@ -120,5 +127,9 @@ public class RecruitmentPost {
         if (request.getMeetingTime().isBefore(LocalDateTime.now())) {
             throw new RecruitmentException(ErrorCode.RECRUITMENTPOST_INVALID_MEETING_TIME);
         }
+    }
+    public void addParticipant(Participant participant) {
+        this.participants.add(participant);
+        incrementParticipants();
     }
 }

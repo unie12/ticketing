@@ -107,7 +107,21 @@ public enum ErrorCode {
 
     // 마감 관련
     RECRUITMENTPOST_CANNOT_CLOSE(HttpStatus.BAD_REQUEST, "마감할 수 없는 구인글입니다."),
-    RECRUITMENTPOST_MEETING_TIME_PASSED(HttpStatus.BAD_REQUEST, "이미 약속 시간이 지난 구인글입니다.");
+    RECRUITMENTPOST_MEETING_TIME_PASSED(HttpStatus.BAD_REQUEST, "이미 약속 시간이 지난 구인글입니다."),
+
+
+    // 채팅방 관련
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
+    CHATROOM_ALREADY_PARTICIPATED(HttpStatus.BAD_REQUEST, "이미 채팅방에 참여 중입니다."),
+    CHATROOM_PARTICIPATION_NOT_ALLOWED(HttpStatus.FORBIDDEN, "채팅방에 참여할 권한이 없습니다."),
+    CHATROOM_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "채팅방 생성에 실패했습니다."),
+
+    // 메시지 관련
+    MESSAGE_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메시지 전송에 실패했습니다."),
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다."),
+
+    // 읽음 상태 관련
+    UNREAD_COUNT_CALCULATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "읽지 않은 메시지 수를 계산하는 데 실패했습니다.");;
 
     private final HttpStatus status;
     private final String message;
