@@ -41,6 +41,16 @@ public class ChatController {
         return ResponseEntity.ok(username + "님이 채팅방에 참여했습니다.");
     }
 
+    @DeleteMapping("/{roomId}/leave")
+    public ResponseEntity<String> leaveChatRoom(
+            @PathVariable Long roomId,
+            @RequestHeader("Authorization") String token
+    ) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        chatRoomService.leaveChatRoom(roomId, userId);
+        return ResponseEntity.ok("채팅방을 성공적으로 나갔습니다");
+    }
+
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<List<ChatMessageResponseDTO>> getMessages(
             @PathVariable Long roomId,
@@ -50,12 +60,23 @@ public class ChatController {
         return ResponseEntity.ok(messageService.getMessages(roomId, page, size));
     }
 
-    @GetMapping("/{roomId}/unread-count")
-    public ResponseEntity<Long> countUnreadMessages(
-            @PathVariable Long roomId,
-            @RequestHeader("Authorization") String token) {
-        String jwtToken = token.replace("Bearer ", "");
-        Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
-        return ResponseEntity.ok(chatRoomService.countUnreadMessages(roomId, userId));
-    }
+
+//    @GetMapping("/{roomId}/unread-count")
+//    public ResponseEntity<Long> countUnreadMessages(
+//            @PathVariable Long roomId,
+//            @RequestHeader("Authorization") String token) {
+//        String jwtToken = token.replace("Bearer ", "");
+//        Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+//        return ResponseEntity.ok(chatRoomService.countUnreadMessages(roomId, userId));
+//    }
+//
+//    @PostMapping("/{roomId}/read")
+//    public ResponseEntity<String> markAsRead(
+//            @PathVariable Long roomId,
+//            @RequestHeader("Authorization") String token
+//    ) {
+//        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+//        chatRoomService.markAsRead(roomId, userId);
+//        return ResponseEntity.ok("메시지 읽음 처리");
+//    }
 }

@@ -11,9 +11,12 @@ import com.example.ticketing.repository.chat.ChatRoomRepository;
 import com.example.ticketing.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +28,7 @@ public class ChatRoomService {
 
     private final UserService userService;
 
+    @Transactional
     public String joinChatRoom(Long roomId, Long userId) {
         User user = userService.findUserById(userId);
         ChatRoom chatRoom = findChatRoomById(roomId);
@@ -39,6 +43,25 @@ public class ChatRoomService {
 
         chatRoomParticipantRepository.save(participant);
         return user.getUsername();
+    }
+
+    @Transactional
+    public void leaveChatRoom(Long roomId, Long userId) {
+        User user = userService.findUserById(userId);
+        ChatRoom chatRoom = findChatRoomById(roomId);
+
+        ChatRoomParticipant participant = findByChatRoomAndUser(chatRoom, user);
+        chatRoomParticipantRepository.delete(participant);
+    }
+
+    @Transactional
+    public void markAsRead(Long roomId, Long userId) {
+        User user = userService.findUserById(userId);
+        ChatRoom chatRoom = findChatRoomById(roomId);
+
+        ChatRoomParticipant participant = findByChatRoomAndUser(chatRoom, user);
+        participant.updateLastReadAt();
+        chatRoomParticipantRepository.save(participant);
     }
 
     public List<ChatRoom> getUserChatRooms(Long userId) {
@@ -60,5 +83,22 @@ public class ChatRoomService {
     public ChatRoom findChatRoomById(Long roomId) {
         return chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ErrorCode.CHATROOM_NOT_FOUND));
+    }
+
+    public boolean isParticipant(Long roomId, Long userId) {
+        return chatRoomParticipantRepository.existsByChatRoom_IdAndUser_Id(roomId, userId);
+    }
+
+    public ChatRoomParticipant findByChatRoomAndUser(ChatRoom chatRoom, User user) {
+        return chatRoomParticipantRepository.findByChatRoomAndUser(chatRoom, user)
+                .orElseThrow(() -> new ChatException(ErrorCode.CHATROOM_NOT_PARTICIPANT));
+    }
+
+    public Set<Long> getRoomParticipants(Long roomId) {
+        ChatRoom room = findChatRoomById(roomId);
+        return room.getChatRoomParticipants().stream()
+                .map(participant -> participant.getUser().getId())
+                .collect(Collectors.toSet());
+
     }
 }

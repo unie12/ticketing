@@ -23,4 +23,6 @@ public interface ChatRoomParticipantRepository extends JpaRepository<ChatRoomPar
     LocalDateTime findLastReadAtChatRoomAndUser(@Param("chatRoom") ChatRoom chatRoom, @Param("user") User user);
 
     List<ChatRoomParticipant> findAllByUser_Id(Long userId);
+
+    boolean existsByChatRoom_IdAndUser_Id(Long roomId, Long userId);
 }

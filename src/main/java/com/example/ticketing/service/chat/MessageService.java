@@ -9,6 +9,5 @@ import java.util.List;
 
 public interface MessageService {
     ChatMessageResponseDTO sendMessage(Long roomId, Long senderId, String content);
-
     public List<ChatMessageResponseDTO> getMessages(Long roomId, int page, int size);
 }
