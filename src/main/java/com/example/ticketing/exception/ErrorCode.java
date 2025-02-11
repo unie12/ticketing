@@ -115,13 +115,14 @@ public enum ErrorCode {
     CHATROOM_ALREADY_PARTICIPATED(HttpStatus.BAD_REQUEST, "이미 채팅방에 참여 중입니다."),
     CHATROOM_PARTICIPATION_NOT_ALLOWED(HttpStatus.FORBIDDEN, "채팅방에 참여할 권한이 없습니다."),
     CHATROOM_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "채팅방 생성에 실패했습니다."),
+    CHATROOM_NOT_PARTICIPANT(HttpStatus.NOT_FOUND, "해당 채팅방에 참여하지 않았습니다"),
 
     // 메시지 관련
     MESSAGE_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "메시지 전송에 실패했습니다."),
     MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다."),
 
     // 읽음 상태 관련
-    UNREAD_COUNT_CALCULATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "읽지 않은 메시지 수를 계산하는 데 실패했습니다.");;
+    UNREAD_COUNT_CALCULATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "읽지 않은 메시지 수를 계산하는 데 실패했습니다."),;
 
     private final HttpStatus status;
     private final String message;

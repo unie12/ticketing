@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ChatMessageResponseDTO {
     private Long id;
+    private Long roomId;
     private Long senderId;
     private String senderName;
     private String content;
@@ -21,6 +22,7 @@ public class ChatMessageResponseDTO {
     public static ChatMessageResponseDTO from(ChatMessage message) {
         return new ChatMessageResponseDTO(
                 message.getId(),
+                message.getChatRoom().getId(),
                 message.getSender().getId(),
                 message.getSender().getUsername(),
                 message.getMessageContent(),
