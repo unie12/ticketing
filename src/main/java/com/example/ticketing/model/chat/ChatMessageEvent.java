@@ -9,18 +9,18 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessageResponseDTO {
+@NoArgsConstructor
+public class ChatMessageEvent {
     private Long id;
     private Long roomId;
     private Long senderId;
     private String senderName;
     private String content;
-    private LocalDateTime timeStamp;
+    private LocalDateTime timestamp;
 
-    public static ChatMessageResponseDTO from(ChatMessage message) {
-        return new ChatMessageResponseDTO(
+    public static ChatMessageEvent from(ChatMessage message) {
+        return new ChatMessageEvent(
                 message.getId(),
                 message.getChatRoom().getId(),
                 message.getSender().getId(),
@@ -30,4 +30,8 @@ public class ChatMessageResponseDTO {
         );
     }
 
+    public void setId(Long tmpId) {
+        this.id = tmpId;
+    }
 }
+

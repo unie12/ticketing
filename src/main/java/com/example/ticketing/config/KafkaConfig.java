@@ -1,14 +1,13 @@
 package com.example.ticketing.config;
 
+import com.example.ticketing.model.chat.ChatMessageEvent;
 import com.example.ticketing.model.user.ReviewActivityEvent;
 import com.example.ticketing.model.user.SearchActivityEvent;
 import com.example.ticketing.model.user.StoreViewActivityEvent;
 import com.example.ticketing.model.user.UserActivityEvent;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.TypeNameIdResolver;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -84,6 +83,18 @@ public class KafkaConfig {
         );
     }
 
+    @Bean
+    public ProducerFactory<String, ChatMessageEvent> chatMessageProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        JsonSerializer<ChatMessageEvent> serializer = new JsonSerializer<>();
+        serializer.setAddTypeInfo(false);
+
+        return new DefaultKafkaProducerFactory<>(config, new StringSerializer(), serializer);
+    }
 
     private Map<String, Object> getDefaultProducerConfig() {
         Map<String, Object> config = new HashMap<>();
@@ -117,6 +128,22 @@ public class KafkaConfig {
                 deserializer
         );
     }
+
+    @Bean
+    public ConsumerFactory<String, ChatMessageEvent> chatMessageConsumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+        JsonDeserializer<ChatMessageEvent> deserializer = new JsonDeserializer<>(ChatMessageEvent.class);
+        deserializer.addTrustedPackages("*");
+        deserializer.setRemoveTypeHeaders(true);
+        deserializer.setUseTypeHeaders(false);
+
+        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
+    }
+
 
     private Map<String, Object> getDefaultConsumerConfig() {
         Map<String, Object> config = new HashMap<>();
@@ -183,6 +210,13 @@ public class KafkaConfig {
         return factory;
     }
 
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, ChatMessageEvent> chatMessageListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, ChatMessageEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(chatMessageConsumerFactory());
+        return factory;
+    }
+
     /**
      * Kafka template
      * 메시지 프로듀서의 편리한 사용을 위한 템플릿
@@ -209,6 +243,11 @@ public class KafkaConfig {
         template.setDefaultTopic(defaultTopic);
         template.setObservationEnabled(true);
         return template;
+    }
+
+    @Bean
+    public KafkaTemplate<String, ChatMessageEvent> chatMessageKafkaTemplate() {
+        return new KafkaTemplate<>(chatMessageProducerFactory());
     }
 
     private <T> ProducerListener<String, T> getProducerListener() {
@@ -284,6 +323,18 @@ public class KafkaConfig {
     public NewTopic interactionEventsTopic() {
         return TopicBuilder.name("interaction-events")
                 .partitions(3)
+                .configs(Map.of(
+                        TopicConfig.RETENTION_MS_CONFIG, "604800000",
+                        TopicConfig.CLEANUP_POLICY_CONFIG, "delete"
+                ))
+                .build();
+    }
+
+    @Bean
+    public NewTopic chatMessageTopic() {
+        return TopicBuilder.name("chat-message-topic")
+                .partitions(3)
+                .replicas(1)
                 .configs(Map.of(
                         TopicConfig.RETENTION_MS_CONFIG, "604800000",
                         TopicConfig.CLEANUP_POLICY_CONFIG, "delete"

@@ -24,6 +24,8 @@ public class QRecruitmentPost extends EntityPathBase<RecruitmentPost> {
 
     public final com.example.ticketing.model.user.QUser author;
 
+    public final com.example.ticketing.model.chat.QChatRoom chatRoom;
+
     public final StringPath content = createString("content");
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
@@ -65,6 +67,7 @@ public class QRecruitmentPost extends EntityPathBase<RecruitmentPost> {
     public QRecruitmentPost(Class<? extends RecruitmentPost> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.author = inits.isInitialized("author") ? new com.example.ticketing.model.user.QUser(forProperty("author")) : null;
+        this.chatRoom = inits.isInitialized("chatRoom") ? new com.example.ticketing.model.chat.QChatRoom(forProperty("chatRoom"), inits.get("chatRoom")) : null;
         this.store = inits.isInitialized("store") ? new com.example.ticketing.model.store.QStore(forProperty("store")) : null;
     }
 

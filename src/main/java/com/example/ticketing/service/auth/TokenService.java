@@ -23,16 +23,16 @@ public class TokenService {
     private static final String BLACKLIST_PREFIX = "BL:";
     private static final String TOKEN_FAMILY_PREFIX = "TF:";
 
-    public void saveRefreshToken(Long userId, String refreshToken, String tokenFamily) {
-        try {
-            TokenData tokenData = new TokenData(refreshToken, tokenFamily);
-            String tokenDataJson = objectMapper.writeValueAsString(tokenData);
-            redisTemplate.opsForValue()
-                    .set(REFRESH_TOKEN_PREFIX + userId, tokenDataJson, 7, TimeUnit.DAYS);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("토큰 저장 실패", e);
+        public void saveRefreshToken(Long userId, String refreshToken, String tokenFamily) {
+            try {
+                TokenData tokenData = new TokenData(refreshToken, tokenFamily);
+                String tokenDataJson = objectMapper.writeValueAsString(tokenData);
+                redisTemplate.opsForValue()
+                        .set(REFRESH_TOKEN_PREFIX + userId, tokenDataJson, 7, TimeUnit.DAYS);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("토큰 저장 실패", e);
+            }
         }
-    }
 
     public TokenData getRefreshToken(Long userId) {
         try {

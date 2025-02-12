@@ -15,6 +15,8 @@ public class RecruitmentDetailDTO {
     private String storeId;
     private String placeName;
 
+    private Long chatRoomId;
+
     private String title;
     private String content;
     private int maxParticipants;
@@ -31,6 +33,7 @@ public class RecruitmentDetailDTO {
                 .id(recruitmentPost.getId())
                 .storeId(recruitmentPost.getStore().getId())
                 .placeName(recruitmentPost.getStore().getPlaceName())
+                .chatRoomId(recruitmentPost.getChatRoom().getId())
                 // 글 정보
                 .title(recruitmentPost.getTitle())
                 .content(recruitmentPost.getContent())

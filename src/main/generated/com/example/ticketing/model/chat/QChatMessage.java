@@ -1,13 +1,13 @@
-package com.example.ticketing.model.recruit;
+package com.example.ticketing.model.chat;
 
-import com.example.ticketing.model.chat.ChatMessage;
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.PathMetadata;
+import static com.querydsl.core.types.PathMetadataFactory.*;
+
 import com.querydsl.core.types.dsl.*;
 
+import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
-
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -16,17 +16,17 @@ import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QChatMessage extends EntityPathBase<ChatMessage> {
 
-    private static final long serialVersionUID = -719608207L;
+    private static final long serialVersionUID = -1196813977L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
     public static final QChatMessage chatMessage = new QChatMessage("chatMessage");
 
+    public final QChatRoom chatRoom;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath messageContent = createString("messageContent");
-
-    public final QRecruitmentPost recruitmentPost;
 
     public final com.example.ticketing.model.user.QUser sender;
 
@@ -50,7 +50,7 @@ public class QChatMessage extends EntityPathBase<ChatMessage> {
 
     public QChatMessage(Class<? extends ChatMessage> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.recruitmentPost = inits.isInitialized("recruitmentPost") ? new QRecruitmentPost(forProperty("recruitmentPost"), inits.get("recruitmentPost")) : null;
+        this.chatRoom = inits.isInitialized("chatRoom") ? new QChatRoom(forProperty("chatRoom"), inits.get("chatRoom")) : null;
         this.sender = inits.isInitialized("sender") ? new com.example.ticketing.model.user.QUser(forProperty("sender")) : null;
     }
 

@@ -23,7 +23,7 @@ import java.util.UUID;
 // 양방향 관계 무한 순환 참조 에러 방지
 @ToString(exclude = {
         "reservations", "userCoupons", "favorites", "hearts", "recruitmentPosts",
-        "participants", "messages","chatRoomParticipants", "messageParticipants"
+        "participants", "messages","chatRoomParticipants"
 })
 public class User {
     @Id

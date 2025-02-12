@@ -131,4 +131,14 @@ public class JwtTokenProvider {
                 .getPayload();
         return claims.get("tokenType", String.class);
     }
+
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("username", String.class);
+    }
 }
