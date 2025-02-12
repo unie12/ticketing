@@ -61,6 +61,10 @@ public class SecurityConfig {
                                 "/api/review/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
                                 "/error"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/**").authenticated()
