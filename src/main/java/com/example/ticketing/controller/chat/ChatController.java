@@ -1,9 +1,9 @@
 package com.example.ticketing.controller.chat;
 
-import com.example.ticketing.model.chat.ChatMessageRequest;
+import com.example.ticketing.model.chat.ChatMessageEvent;
 import com.example.ticketing.model.chat.ChatMessageResponseDTO;
-import com.example.ticketing.model.chat.UserPrincipal;
 import com.example.ticketing.security.JwtTokenProvider;
+import com.example.ticketing.service.chat.ChatMessageProducer;
 import com.example.ticketing.service.chat.ChatPresenceService;
 import com.example.ticketing.service.chat.ChatRoomService;
 import com.example.ticketing.service.chat.MessageService;
@@ -15,7 +15,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -27,15 +27,28 @@ public class ChatController {
     private final JwtTokenProvider jwtTokenProvider;
     private final ChatPresenceService presenceService;
 
+    private final ChatMessageProducer chatMessageProducer;
+
     @MessageMapping("/{roomId}/send")
     @SendTo("/topic/chat/{roomId}")
-    public ChatMessageResponseDTO sendMessage(
+    public ChatMessageEvent sendMessage(
             @DestinationVariable Long roomId,
-            ChatMessageRequest request,
+            @RequestBody String messageContent,
             @Header("Authorization") String token) {
         String jwtToken = token.replace("Bearer ", "");
         Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
-        return messageService.sendMessage(roomId, userId, request.getContent());
+        String username = jwtTokenProvider.getUsernameFromToken(jwtToken);
+
+        ChatMessageEvent event = ChatMessageEvent.builder()
+                .roomId(roomId)
+                .senderId(userId)
+                .senderName(username)
+                .content(messageContent)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        chatMessageProducer.sendChatMessage(event);
+        return event;
     }
 
     @MessageMapping("/enter/{roomId}")
@@ -66,7 +79,7 @@ public class ChatController {
     }
 
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponseDTO>> getMessages(
+    public ResponseEntity<List<ChatMessageEvent>> getMessages(
             @PathVariable Long roomId,
             @RequestParam int page,
             @RequestParam int size

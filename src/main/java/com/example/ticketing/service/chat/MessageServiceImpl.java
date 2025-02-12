@@ -1,9 +1,6 @@
 package com.example.ticketing.service.chat;
 
-import com.example.ticketing.model.chat.ChatMessage;
-import com.example.ticketing.model.chat.ChatMessageResponseDTO;
-import com.example.ticketing.model.chat.ChatNotificationDTO;
-import com.example.ticketing.model.chat.ChatRoom;
+import com.example.ticketing.model.chat.*;
 import com.example.ticketing.model.user.User;
 import com.example.ticketing.repository.chat.ChatMessageRepository;
 import com.example.ticketing.service.user.UserService;
@@ -36,11 +33,6 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional
     public ChatMessageResponseDTO sendMessage(Long roomId, Long senderId, String content) {
-        // 비동기로 메시지 저장
-//        CompletableFuture<ChatMessage> messageFuture = CompletableFuture
-//                .supplyAsync(() -> saveMessage(roomId, senderId, content));
-        // 실시간 전송
-
         ChatMessage message = saveMessage(roomId, senderId, content);
         ChatMessageResponseDTO responseDTO = ChatMessageResponseDTO.from(message);
 
@@ -51,19 +43,7 @@ public class MessageServiceImpl implements MessageService {
                 log.error("Error in handleParticipantNotifications: {}", e.getMessage());
             }
         });
-
-//        Set<Long> participants = chatRoomService.getRoomParticipants(roomId);
-//        for (Long participantId : participants) {
-//            if (!participantId.equals(senderId)) {
-//                handleMessageForParticipant(roomId, participantId, responseDTO);
-//            }
-//        }
-
         return responseDTO;
-//        messagingTemplate.convertAndSend(
-//                "/topic/chat/" + roomId,
-//                new ChatMessageResponseDTO(sender.getUsername(), content, LocalDateTime.now())
-//        );
     }
 
     private void handleParticipantNotifications(Long roomId, Long senderId, ChatMessageResponseDTO responseDTO) {
@@ -120,10 +100,10 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<ChatMessageResponseDTO> getMessages(Long roomId, int page, int size) {
+    public List<ChatMessageEvent> getMessages(Long roomId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").ascending());
         return chatMessageRepository.findByChatRoom_Id(roomId, pageable).getContent()
-                .stream().map(ChatMessageResponseDTO::from)
+                .stream().map(ChatMessageEvent::from)
                 .collect(Collectors.toList());
     }
 

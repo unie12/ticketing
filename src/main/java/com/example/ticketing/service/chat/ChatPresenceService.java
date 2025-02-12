@@ -1,5 +1,6 @@
 package com.example.ticketing.service.chat;
 
+import com.example.ticketing.model.chat.ChatNotificationDTO;
 import com.example.ticketing.model.chat.PresenceChangeDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,10 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -88,7 +86,7 @@ public class ChatPresenceService {
         redisTemplate.delete(unreadKey);
     }
 
-    private void notifyRoomPresenceChange(Long roomId, Long userId, String status) {
+    public void notifyRoomPresenceChange(Long roomId, Long userId, String status) {
         messagingTemplate.convertAndSend(
                 "/topic/chat/" + roomId + "/presence",
                 new PresenceChangeDTO(userId, status)
@@ -98,6 +96,19 @@ public class ChatPresenceService {
     public String getUserStatus(Long userId) {
         String statusKey = USER_STATUS_KEY + userId;
         return (String) redisTemplate.opsForValue().get(statusKey);
+    }
+
+    public void sendNotification(Long participantId, ChatNotificationDTO notification) {
+        try {
+            messagingTemplate.convertAndSendToUser(
+                    participantId.toString(),
+                    "/queue/notifications",
+                    notification
+            );
+            log.info("Notification sent to user {}: {}", participantId, notification);
+        } catch (Exception e) {
+            log.error("Failed to send notification to user {}: {}", participantId, e.getMessage());
+        }
     }
 
 //
