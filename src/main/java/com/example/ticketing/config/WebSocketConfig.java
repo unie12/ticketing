@@ -71,6 +71,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return scheduler;
     }
 
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(new ChannelInterceptor() {
+            @Override
+            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+
+                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                    String token = accessor.getFirstNativeHeader("Authorization");
+                    if (token != null && token.startsWith("Bearer ")) {
+                        String jwtToken = token.substring(7);
+                        Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+                        accessor.setUser(new UserPrincipal(userId));
+                    }
+                }
+                return message;
+            }
+        });
+    }
+
     // 클라이언트 연결 시 jwt 토큰 검증 및 사용자 정보 설정
 //    @Override
 //    public void configureClientInboundChannel(ChannelRegistration registration) {

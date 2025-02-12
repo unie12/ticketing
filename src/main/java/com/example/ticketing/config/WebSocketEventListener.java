@@ -1,14 +1,17 @@
 package com.example.ticketing.config;
 
 import com.example.ticketing.model.chat.UserPrincipal;
+import com.example.ticketing.security.JwtTokenProvider;
 import com.example.ticketing.service.chat.ChatPresenceService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
 
@@ -16,6 +19,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
     private final ChatPresenceService chatPresenceService;
+    private final JwtTokenProvider jwtTokenProvider;
     private final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
 
     /**
@@ -23,11 +27,12 @@ public class WebSocketEventListener {
      */
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        Principal user = accessor.getUser();
-        if (user != null) {
-            Long userId = ((UserPrincipal) user).getUserId();
-            chatPresenceService.updateUserStatus(userId, "ONLINE"); // 사용자 상태 변경
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(event.getMessage(), StompHeaderAccessor.class);
+        String token = accessor.getFirstNativeHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            String jwtToken = token.substring(7);
+            Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+            chatPresenceService.updateUserStatus(userId, "ONLINE");
             logger.info("User connected: {}", userId);
         }
     }
@@ -36,13 +41,14 @@ public class WebSocketEventListener {
      * websocket 해제 시 호출
      */
     @EventListener
-    public void handleWebSocketDisconnectListener(SessionConnectEvent event) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        Principal user = accessor.getUser();
-        if (user != null) {
-            Long userId = ((UserPrincipal) user).getUserId();
-            chatPresenceService.updateUserStatus(userId, "OFFLINE"); // 사용자 선택 변경
-            chatPresenceService.clearActiveRoom(userId); // 활성 채팅방 정보 제거
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(event.getMessage(), StompHeaderAccessor.class);
+        String token = accessor.getFirstNativeHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            String jwtToken = token.substring(7);
+            Long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+            chatPresenceService.updateUserStatus(userId, "OFFLINE");
+            chatPresenceService.clearActiveRoom(userId);
             logger.info("User disconnected: {}", userId);
         }
     }
