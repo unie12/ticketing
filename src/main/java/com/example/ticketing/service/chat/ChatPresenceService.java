@@ -2,6 +2,7 @@ package com.example.ticketing.service.chat;
 
 import com.example.ticketing.model.chat.PresenceChangeDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ChatPresenceService {
     private final RedisTemplate<String, Object> redisTemplate;
@@ -36,6 +38,7 @@ public class ChatPresenceService {
      * 채팅방 활성화 (현재 보고 있는 채팅방)
      */
     public void setActiveRoom(Long userId, Long roomId) {
+        log.info("User {} entered chat room {}", userId, roomId);
         String activeRoomKey = USER_ACTIVE_ROOM_KEY + userId;
         redisTemplate.opsForValue().set(activeRoomKey, roomId.toString());
 
@@ -66,15 +69,22 @@ public class ChatPresenceService {
      * 안읽은 메시지 수 증가
      */
     public void incrementUnreadCount(Long roomId, Long userId) {
+        log.info("Incrementing unread count for room {} user {}", roomId, userId);
         String unreadKey = ROOM_UNREAD_KEY + roomId + ":" + userId;
-        redisTemplate.opsForValue().increment(unreadKey);
+        try {
+            Long count = redisTemplate.opsForValue().increment(unreadKey);
+            log.info("New unread count for key {}: {}", unreadKey, count);
+        } catch (Exception e) {
+            log.error("Failed to increment unread count for key {}: {}", unreadKey, e.getMessage());
+        }
     }
 
     /**
      * 안읽은 메시지 초기화
      */
     public void cleanUnreadCount(Long userId, Long roomId) {
-        String unreadKey = ROOM_UNREAD_KEY + roomId + ":";
+//        String unreadKey = ROOM_UNREAD_KEY + roomId + ":";
+        String unreadKey = ROOM_UNREAD_KEY + roomId + ":" + userId;
         redisTemplate.delete(unreadKey);
     }
 
@@ -83,6 +93,11 @@ public class ChatPresenceService {
                 "/topic/chat/" + roomId + "/presence",
                 new PresenceChangeDTO(userId, status)
         );
+    }
+
+    public String getUserStatus(Long userId) {
+        String statusKey = USER_STATUS_KEY + userId;
+        return (String) redisTemplate.opsForValue().get(statusKey);
     }
 
 //

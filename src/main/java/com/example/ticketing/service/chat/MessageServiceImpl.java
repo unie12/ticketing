@@ -8,6 +8,7 @@ import com.example.ticketing.model.user.User;
 import com.example.ticketing.repository.chat.ChatMessageRepository;
 import com.example.ticketing.service.user.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,9 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
     private final ChatMessageRepository chatMessageRepository;
@@ -33,24 +36,64 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional
     public ChatMessageResponseDTO sendMessage(Long roomId, Long senderId, String content) {
+        // 비동기로 메시지 저장
+//        CompletableFuture<ChatMessage> messageFuture = CompletableFuture
+//                .supplyAsync(() -> saveMessage(roomId, senderId, content));
+        // 실시간 전송
+
         ChatMessage message = saveMessage(roomId, senderId, content);
         ChatMessageResponseDTO responseDTO = ChatMessageResponseDTO.from(message);
 
-        Set<Long> participants = chatRoomService.getRoomParticipants(roomId);
-        for (Long participantId : participants) {
-            if (!participantId.equals(senderId)) {
-                handleMessageForParticipant(roomId, participantId, responseDTO);
+        CompletableFuture.runAsync(() -> {
+            try {
+                handleParticipantNotifications(roomId, senderId, responseDTO);
+            } catch (Exception e) {
+                log.error("Error in handleParticipantNotifications: {}", e.getMessage());
             }
-        }
+        });
+
+//        Set<Long> participants = chatRoomService.getRoomParticipants(roomId);
+//        for (Long participantId : participants) {
+//            if (!participantId.equals(senderId)) {
+//                handleMessageForParticipant(roomId, participantId, responseDTO);
+//            }
+//        }
 
         return responseDTO;
-
 //        messagingTemplate.convertAndSend(
 //                "/topic/chat/" + roomId,
 //                new ChatMessageResponseDTO(sender.getUsername(), content, LocalDateTime.now())
 //        );
     }
 
+    private void handleParticipantNotifications(Long roomId, Long senderId, ChatMessageResponseDTO responseDTO) {
+        Set<Long> participants = chatRoomService.getRoomParticipants(roomId);
+        log.info("Participants for room {}: {}", roomId, participants);
+
+        if (participants.isEmpty()) {
+            log.warn("No participants found for room {}", roomId);
+            return;
+        }
+        participants.stream()
+                .filter(participantId -> !participantId.equals(senderId))
+                .forEach(participantId -> {
+                    Long activeRoom = presenceService.getActiveRoom(participantId);
+                    String userStatus = presenceService.getUserStatus(participantId);
+
+                    log.info("Checking unread count increment for room {} and user {}", roomId, participantId);
+                    // 사용자가 오프라인이거나 다른 채팅방을 보고 있는 경우
+                    if (!"ONLINE".equals(userStatus) ||
+                            activeRoom == null ||
+                            !activeRoom.equals(roomId)) {
+                        log.info("Incrementing unread count for room {} and user {}", roomId, participantId);
+                        presenceService.incrementUnreadCount(roomId, participantId);
+                        sendNotification(participantId, responseDTO);
+                        log.info("Sent notification to user {} for room {}", participantId, roomId);
+                    } else {
+                        log.info("No unread count increment needed for room {} and user {}", roomId, participantId);
+                    }
+                });
+    }
     private void handleMessageForParticipant(Long roomId, Long userId, ChatMessageResponseDTO message) {
         Long activeRoom = presenceService.getActiveRoom(userId);
 
